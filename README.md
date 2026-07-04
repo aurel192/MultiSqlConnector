@@ -2,7 +2,7 @@
 
 Simple SQL wrapper helpers for MySQL/MariaDB and SQLite.
 
-![multisqlconnector demo](dry.png)
+![multisqlconnector](dry.png)
 
 [GitHub - aurel192 / MultiSqlConnector](https://github.com/aurel192/MultiSqlConnector)
 
@@ -27,6 +27,8 @@ from multisqlconnector import DEFAULT_SQL_PROVIDER, configure, sql_insert, sql_s
 
 print(DEFAULT_SQL_PROVIDER)  # "SQLITE" by default
 
+## MySQL usage
+
 configure(
     default_sqlprovider="MYSQL",
     mysql_connection={
@@ -50,7 +52,16 @@ rows = sql_select(
     parameters=(0,),
 )
 
-print(rows)
+for row in rows:
+    print(row)
+
+rows = sql_select_named(
+    "SELECT id, value1, value2 FROM testtable WHERE id > %p",
+    parameters=(0,),
+)
+
+for row in rows:
+    print(row)
 ```
 
 ## SQLite usage
@@ -70,8 +81,14 @@ sql_execute(
     """
 )
 
+sql_insert(
+    "INSERT INTO testtable (value1, value2) VALUES (%p, %p)",
+    parameters=(42, "hello"),
+)
+
 rows = sql_select_named("SELECT id, value1, value2 FROM testtable WHERE id > %p", parameters=(0,))
-print(rows)
+for row in rows:
+    print(row)
 ```
 
 ## Placeholders
