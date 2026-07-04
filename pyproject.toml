@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "multisqlconnector_aurel192"
+version = "0.0.1"
+authors = [
+  { name="Aurel Kovacs", email="kovacsaurel@gmail.com" },
+]
+description = "SQL Wrapper functions for MySql, MariaDb, Sqlite3, more coming soon (WIP)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mysql-connector-python>=9.0.0",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICENSE"]
+
+[project.urls]
+Homepage = "https://github.com/aurel192/multisqlconnector"
+Issues = "https://github.com/aurel192/multisqlconnector/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["multisqlconnector*"]
