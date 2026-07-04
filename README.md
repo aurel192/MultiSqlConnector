@@ -26,9 +26,10 @@ py -m pip install .
 from multisqlconnector import DEFAULT_SQL_PROVIDER, configure, sql_insert, sql_select, sql_update, sql_delete, sql_execute
 
 print(DEFAULT_SQL_PROVIDER)  # "SQLITE" by default
+```
 
 ## MySQL usage
-
+```python
 configure(
     default_sqlprovider="MYSQL",
     mysql_connection={
