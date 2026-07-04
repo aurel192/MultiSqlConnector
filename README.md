@@ -2,6 +2,10 @@
 
 Simple SQL wrapper helpers for MySQL/MariaDB and SQLite.
 
+![multisqlconnector demo](dry.png)
+
+[GitHub - aurel192 / MultiSqlConnector](https://github.com/aurel192/MultiSqlConnector)
+
 ## Install
 
 From TestPyPI:
