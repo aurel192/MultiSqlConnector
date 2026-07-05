@@ -52,9 +52,6 @@ def configure(
         if not sqlite_db_path.strip():
             raise ValueError("sqlite_db_path cannot be empty")
 
-        # Validate that the value can be interpreted as a path.
-        Path(sqlite_db_path)
-
     if target_provider == "MYSQL":
         if mysql_connection is None:
             raise ValueError("mysql_connection is required when default_sqlprovider is 'MYSQL'")

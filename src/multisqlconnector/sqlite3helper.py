@@ -5,16 +5,39 @@ from typing import Any, Sequence
 
 from . import db_config
 
+def get_sqlite_database_path(sqlite_db_path: str | None = None):
+    try:
+        if sqlite_db_path is not None and sqlite_db_path.strip() == "":
+            raise ValueError("get_sqlite_database_path sqlite_db_path cannot be an empty string")
+        path = sqlite_db_path if sqlite_db_path is not None else db_config.SQLITE_DB_PATH
+        return path
+    except Exception as e:
+        path = sqlite_db_path if sqlite_db_path is not None and sqlite_db_path != "" else ""
+        raise Exception(f"Error getting SQLite database path in get_sqlite_database_path: sqlite_db_path={path}, {e}")
 
-def get_default_sqlite_connection():
-    return sqlite3.connect(db_config.SQLITE_DB_PATH)
+
+def get_sqlite_connection(sqlite_db_path: str | None = None):
+    try:
+        sqlite_db_path = get_sqlite_database_path(sqlite_db_path)
+        return sqlite3.connect(sqlite_db_path)
+    except Exception as e:
+        path = sqlite_db_path if sqlite_db_path is not None and sqlite_db_path != "" else ""
+        raise Exception(f"Error getting SQLite connection in get_sqlite_connection: sqlite_db_path={path}, {e}")
+
+
+def init_sqlite_db(connection=db_config.SQLITE_DB_PATH, createscript: str | None = None):
+    try:
+        sqlite_db_created = sqlite_execute(sqlquery=createscript, parameters=None, connection=connection) # type: ignore
+        return sqlite_db_created
+    except Exception as e:
+        raise Exception(f"Error initializing SQLite database: {e}")
 
 
 def sqlite_execute(sqlquery: str, parameters: Sequence[Any] | None = None, connection=None):
     conn = None
     cur = None
     try:
-        conn = connection or get_default_sqlite_connection()
+        conn = get_sqlite_connection(connection)
         cur = conn.cursor()
         if parameters is not None:
             cur.execute(sqlquery, parameters)
@@ -35,7 +58,7 @@ def sqlite_select(sqlquery: str, parameters: Sequence[Any] | None = None, connec
     conn = None
     cur = None
     try:
-        conn = connection or get_default_sqlite_connection()
+        conn = get_sqlite_connection(connection)
         cur = conn.cursor()
         if parameters is not None:
             cur.execute(sqlquery, parameters)
@@ -60,7 +83,7 @@ def sqlite_insert(
     conn = None
     cur = None
     try:
-        conn = connection or get_default_sqlite_connection()
+        conn = get_sqlite_connection(connection)
         cur = conn.cursor()
         if many:
             cur.executemany(sqlquery, parameters or [])
@@ -86,7 +109,7 @@ def sqlite_update(sqlquery: str, parameters: Sequence[Any] | None = None, connec
     conn = None
     cur = None
     try:
-        conn = connection or get_default_sqlite_connection()
+        conn = get_sqlite_connection(connection)
         cur = conn.cursor()
         if parameters is not None:
             cur.execute(sqlquery, parameters)
@@ -107,7 +130,7 @@ def sqlite_delete(sqlquery: str, parameters: Sequence[Any] | None = None, connec
     conn = None
     cur = None
     try:
-        conn = connection or get_default_sqlite_connection()
+        conn = get_sqlite_connection(connection)
         cur = conn.cursor()
         if parameters is not None:
             cur.execute(sqlquery, parameters)
@@ -125,24 +148,24 @@ def sqlite_delete(sqlquery: str, parameters: Sequence[Any] | None = None, connec
 
 
 def sqlite_test_functions(connection=None):
-    def effective_connection():
-        return connection if connection is not None else get_default_sqlite_connection()
-
     try:
+        db_path = get_sqlite_database_path(connection)
+        print("======== Running SQLite Test Functions ======================")
+        print(f"Using connection: {db_path}")
         sqlite_insert(
             "INSERT INTO testtable (value1, value2) VALUES (?, ?)",
-            (random.randint(1, 100), "datetime_" + str(datetime.now().isoformat())),
-            connection=effective_connection(),
+            (random.randint(1, 100), f"{db_path} - {str(datetime.now().isoformat())}"),
+            connection=connection,
         )
 
-        results = sqlite_select("SELECT * FROM testtable LIMIT 5", connection=effective_connection())
+        results = sqlite_select("SELECT * FROM testtable LIMIT 5", connection=connection)
         for row in results:
             print(row)
 
         results = sqlite_select(
             "SELECT * FROM testtable WHERE id <= ? ORDER BY id DESC LIMIT ?",
             (10, 5),
-            connection=effective_connection(),
+            connection=connection,
         )
         for row in results:
             print(row)
@@ -150,11 +173,11 @@ def sqlite_test_functions(connection=None):
         sqlite_update(
             "UPDATE testtable SET value2 = ? WHERE id = ?",
             ("updated_value_" + str(random.randint(1, 100)), 1),
-            connection=effective_connection(),
+            connection=connection,
         )
 
         topid = sqlite_select(
-            "SELECT MAX(id) FROM testtable", connection=effective_connection()
+            "SELECT MAX(id) FROM testtable", connection=connection
         )
         top_id = None
         if isinstance(topid, (list, tuple)) and len(topid) > 0:
@@ -169,7 +192,7 @@ def sqlite_test_functions(connection=None):
         sqlite_delete(
             "DELETE FROM testtable WHERE id = ?",
             (delete_id,) if delete_id is not None else (0,),
-            connection=effective_connection(),
+            connection=connection,
         )
     except Exception as e:
         raise Exception(f"Error at sqlite_test_functions: {e}")

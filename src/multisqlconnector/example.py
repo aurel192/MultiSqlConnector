@@ -11,46 +11,39 @@ from multisqlconnector import configure, sql_select, sql_select_cast, sql_select
 from multisqlconnector import db_config
 from multisqlconnector.db_config import mysql_config
 from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions
-from multisqlconnector.sqlite3helper import sqlite_execute, sqlite_test_functions
-
-
-def init_sqlite_db():
-    return sqlite_execute(
-        """
-        CREATE TABLE IF NOT EXISTS testtable (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            value1 INTEGER NULL,
-            value2 TEXT NULL
-        )
-        """
-    )
+from multisqlconnector.sqlite3helper import *
 
 
 def init_mysql_db():
-    mysql_config_temp = mysql_config.copy()
-    database_name = mysql_config_temp.pop("database")
+    try:
+        # Create the database if it doesn't exist
+        mysql_config_temp = mysql_config.copy()
+        database_name = mysql_config_temp.pop("database")
 
-    database_created = mysql_execute(
-        f"""
-        CREATE DATABASE IF NOT EXISTS `{database_name}`
-        CHARACTER SET utf8mb4
-        COLLATE utf8mb4_unicode_ci
-        """,
-        connection=mysql_config_temp,
-    )
-    if not database_created:
-        return False
+        database_created = mysql_execute(
+            f"""
+            CREATE DATABASE IF NOT EXISTS `{database_name}`
+            CHARACTER SET utf8mb4
+            COLLATE utf8mb4_unicode_ci
+            """,
+            connection=mysql_config_temp,
+        )
+        if not database_created:
+            return False
 
-    return mysql_execute(
-        """
-        CREATE TABLE IF NOT EXISTS testtable (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            value1 INT NULL,
-            value2 VARCHAR(255) NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """,
-        connection=mysql_config,
-    )
+        test_table_created = mysql_execute(
+            """
+            CREATE TABLE IF NOT EXISTS testtable (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                value1 INT NULL,
+                value2 VARCHAR(255) NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+            connection=mysql_config,
+        )
+        return test_table_created
+    except Exception as e:
+        raise Exception(f"Error initializing MySQL database: {e}")
 
 
 def create_db_and_run_tests():
@@ -66,7 +59,14 @@ def create_db_and_run_tests():
         return
 
     if current_provider == "SQLITE":
-        created = init_sqlite_db()
+        sqlite_create_script = f"""
+            CREATE TABLE IF NOT EXISTS testtable (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                value1 INTEGER NULL,
+                value2 TEXT NULL
+            )
+            """
+        created = init_sqlite_db(createscript=sqlite_create_script)
         if not created:
             print("SQLite database initialization failed.")
             return
@@ -116,13 +116,30 @@ def run_select_queries():
 
 if __name__ == "__main__":
 
+    sqlite_create_script = f"""
+            CREATE TABLE IF NOT EXISTS testtable (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                value1 INTEGER NULL,
+                value2 TEXT NULL
+            )
+            """
+    created = init_sqlite_db(createscript=sqlite_create_script)
+    print(f"SQLite database created: {created} (or it already existed)")
+
+    created = init_sqlite_db(createscript=sqlite_create_script, connection="something_else.db")
+    print(f"SQLite database created with custom connection: {created} (or it already existed)")
+
     # Test SQLITE Default connection
-    configure(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")  # Change to "MYSQL" to test MySQL
+    # configure(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")  # Change to "MYSQL" to test MySQL
+
     sqlite_test_functions()
+    sqlite_test_functions(connection="something_else.db")
+
+    # sqlite_test_functions(connection="test_sqlite_035.db")  # Test SQLITE with custom connection
+    # create_db_and_run_tests()
 
     # Test MYSQL Default connection
     # configure(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)  # Change to "MYSQL" to test MySQL
     # mysql_test_functions()
 
-    # create_db_and_run_tests()
     # run_select_queries()
