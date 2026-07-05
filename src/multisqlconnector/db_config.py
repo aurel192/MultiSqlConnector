@@ -51,9 +51,9 @@ def configure(
             raise ValueError("sqlite_db_path cannot be empty")
 
     if target_provider == "MYSQL":
-        if mysql_connection is None:
+        if mysql_connection is None and (mysql_config is None or not isinstance(mysql_config, dict)):
             raise ValueError("mysql_connection is required when default_sqlprovider is 'MYSQL'")
-        if not isinstance(mysql_connection, dict):
+        if mysql_connection is not None and not isinstance(mysql_connection, dict):
             raise TypeError("mysql_connection must be a dictionary")
 
     DEFAULT_SQL_PROVIDER = target_provider

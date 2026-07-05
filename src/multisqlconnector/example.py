@@ -131,5 +131,5 @@ if __name__ == "__main__":
     configure(default_sqlprovider="SQLITE")
     run_select_queries()
 
-    # configure(default_sqlprovider="MYSQL")
-    # run_select_queries()
+    configure(default_sqlprovider="MYSQL")
+    run_select_queries()
