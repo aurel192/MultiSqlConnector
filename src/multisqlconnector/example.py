@@ -10,40 +10,8 @@ if __package__ is None or __package__ == "":
 from multisqlconnector import configure, sql_select, sql_select_cast, sql_select_named
 from multisqlconnector import db_config
 from multisqlconnector.db_config import mysql_config
-from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions
+from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_db
 from multisqlconnector.sqlite3helper import *
-
-
-def init_mysql_db():
-    try:
-        # Create the database if it doesn't exist
-        mysql_config_temp = mysql_config.copy()
-        database_name = mysql_config_temp.pop("database")
-
-        database_created = mysql_execute(
-            f"""
-            CREATE DATABASE IF NOT EXISTS `{database_name}`
-            CHARACTER SET utf8mb4
-            COLLATE utf8mb4_unicode_ci
-            """,
-            connection=mysql_config_temp,
-        )
-        if not database_created:
-            return False
-
-        test_table_created = mysql_execute(
-            """
-            CREATE TABLE IF NOT EXISTS testtable (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                value1 INT NULL,
-                value2 VARCHAR(255) NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            """,
-            connection=mysql_config,
-        )
-        return test_table_created
-    except Exception as e:
-        raise Exception(f"Error initializing MySQL database: {e}")
 
 
 def create_db_and_run_tests():
@@ -123,23 +91,39 @@ if __name__ == "__main__":
                 value2 TEXT NULL
             )
             """
-    created = init_sqlite_db(createscript=sqlite_create_script)
-    print(f"SQLite database created: {created} (or it already existed)")
+    # created = init_sqlite_db(createscript=sqlite_create_script)
+    # print(f"SQLite database created: {created} (or it already existed)")
 
-    created = init_sqlite_db(createscript=sqlite_create_script, connection="something_else.db")
-    print(f"SQLite database created with custom connection: {created} (or it already existed)")
+    # Test SQLITE with custom connection
+    # created = init_sqlite_db(createscript=sqlite_create_script, connection="something_else.db")
+    # print(f"SQLite database created with custom connection: {created} (or it already existed)")
 
     # Test SQLITE Default connection
     # configure(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")  # Change to "MYSQL" to test MySQL
 
-    sqlite_test_functions()
-    sqlite_test_functions(connection="something_else.db")
+    # sqlite_test_functions()
+    # sqlite_test_functions(connection="something_else.db")
 
     # sqlite_test_functions(connection="test_sqlite_035.db")  # Test SQLITE with custom connection
     # create_db_and_run_tests()
 
     # Test MYSQL Default connection
     # configure(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)  # Change to "MYSQL" to test MySQL
+    # mysql_test_functions()
+
+    custom_mysql_settings: dict[str, Any] = {
+        "host": "127.0.0.1",
+        "port": 3306,
+        "user": "root",
+        "password": "1234",
+        "database": "test_db_02",
+        "charset": "utf8mb4",
+        "collation": "utf8mb4_unicode_ci",
+    }
+
+    # Test MYSQL with custom connection
+    configure(default_sqlprovider="MYSQL", mysql_connection=custom_mysql_settings)  # Change to "MYSQL" to test MySQL
+    create_db_and_run_tests()
     # mysql_test_functions()
 
     # run_select_queries()

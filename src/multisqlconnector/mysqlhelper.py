@@ -6,15 +6,55 @@ import mysql.connector
 from . import db_config
 
 
-def get_default_mysql_connection():
-    return db_config.mysql_config
+def get_mysql_connection_parameters(connection=None):
+    try:
+        if connection is not None and isinstance(connection, dict):
+            return connection
+        elif db_config.mysql_config is not None and isinstance(db_config.mysql_config, dict):
+            return db_config.mysql_config
+        else:
+            raise ValueError("MySQL connection parameters are not properly configured.")
+    except Exception as e:
+        raise Exception(f"Error getting MySQL connection parameters: {e}")
+
+
+def init_mysql_db(connection=None):
+    try:
+        # Create a database if it doesn't exist
+        mysql_config = get_mysql_connection_parameters(connection).copy()
+        database_name = mysql_config.get("database")
+
+        database_created = mysql_execute(
+            f"""
+            CREATE DATABASE IF NOT EXISTS `{database_name}`
+            CHARACTER SET utf8mb4
+            COLLATE utf8mb4_unicode_ci
+            """,
+            connection=mysql_config,
+        )
+        if not database_created:
+            return False
+
+        test_table_created = mysql_execute(
+            """
+            CREATE TABLE IF NOT EXISTS testtable (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                value1 INT NULL,
+                value2 VARCHAR(255) NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+            connection=connection or mysql_config,
+        )
+        return test_table_created
+    except Exception as e:
+        raise Exception(f"Error initializing MySQL database: {e}")
 
 
 def mysql_execute(sqlquery, parameters=None, connection=None):
     conn = None
     cur = None
     try:
-        conn_config = get_default_mysql_connection() if connection is None else connection
+        conn_config = get_mysql_connection_parameters(connection) if connection is None else connection
         conn = mysql.connector.connect(**conn_config)
         cur = conn.cursor()
         if parameters is not None:
@@ -36,7 +76,7 @@ def mysql_select(sqlquery, parameters=None, connection=None):
     conn = None
     cur = None
     try:
-        conn_config = get_default_mysql_connection() if connection is None else connection
+        conn_config = get_mysql_connection_parameters(connection) if connection is None else connection
         conn = mysql.connector.connect(**conn_config)
         cur = conn.cursor()
         if parameters is not None:
@@ -57,7 +97,7 @@ def mysql_insert(sqlquery, parameters=None, many=False, connection=None):
     conn = None
     cur = None
     try:
-        conn_config = get_default_mysql_connection() if connection is None else connection
+        conn_config = get_mysql_connection_parameters(connection) if connection is None else connection
         conn = mysql.connector.connect(**conn_config)
         cur = conn.cursor()
         if many:
@@ -83,7 +123,7 @@ def mysql_update(sqlquery, parameters=None, connection=None):
     conn = None
     cur = None
     try:
-        conn_config = get_default_mysql_connection() if connection is None else connection
+        conn_config = get_mysql_connection_parameters(connection) if connection is None else connection
         conn = mysql.connector.connect(**conn_config)
         cur = conn.cursor()
         if parameters is not None:
@@ -105,7 +145,7 @@ def mysql_delete(sqlquery, parameters=None, connection=None):
     conn = None
     cur = None
     try:
-        conn_config = get_default_mysql_connection() if connection is None else connection
+        conn_config = get_mysql_connection_parameters(connection) if connection is None else connection
         conn = mysql.connector.connect(**conn_config)
         cur = conn.cursor()
         if parameters is not None:
@@ -125,7 +165,7 @@ def mysql_delete(sqlquery, parameters=None, connection=None):
 
 def mysql_test_functions(connection=None):
     effective_connection = (
-        get_default_mysql_connection() if connection is None else connection
+        get_mysql_connection_parameters(connection) if connection is None else connection
     )
 
     try:
