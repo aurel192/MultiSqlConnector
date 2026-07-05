@@ -45,11 +45,9 @@ def configure(
         target_provider = normalized
 
     if target_provider == "SQLITE":
-        if sqlite_db_path is None:
+        if sqlite_db_path is None and (SQLITE_DB_PATH is None or SQLITE_DB_PATH.strip() == ""):
             raise ValueError("sqlite_db_path is required when default_sqlprovider is 'SQLITE'")
-        if not isinstance(sqlite_db_path, str):
-            raise TypeError("sqlite_db_path must be a string path")
-        if not sqlite_db_path.strip():
+        if sqlite_db_path is not None and not sqlite_db_path.strip() and (SQLITE_DB_PATH is None or SQLITE_DB_PATH.strip() == ""):
             raise ValueError("sqlite_db_path cannot be empty")
 
     if target_provider == "MYSQL":

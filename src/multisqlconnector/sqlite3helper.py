@@ -188,10 +188,10 @@ def sqlite_test_functions(connection=None):
         print(f"Top ID results: {topid if topid else 'N/A'}")
         print(f"Top ID: {top_id if top_id is not None else 'N/A'}")
 
-        delete_id = 1
+        first_id = 1
         sqlite_delete(
             "DELETE FROM testtable WHERE id = ?",
-            (delete_id,) if delete_id is not None else (0,),
+            (first_id,) if first_id is not None else (0,),
             connection=connection,
         )
     except Exception as e:

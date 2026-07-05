@@ -168,36 +168,34 @@ def mysql_delete(sqlquery, parameters=None, connection=None):
 
 
 def mysql_test_functions(connection=None):
-    effective_connection = (
-        get_mysql_connection_parameters(connection) if connection is None else connection
-    )
-
     try:
+        print("======== Running MySQL Test Functions ======================")
+        mysql_config = get_mysql_connection_parameters(connection).copy()
+        database_name = mysql_config.get("database")
+        print(f"Using database: {database_name}")
+        mysql_config = get_mysql_connection_parameters(connection).copy()
         mysql_insert(
             "INSERT INTO testtable (value1, value2) VALUES (%s, %s)",
-            (random.randint(1, 100), "datetime_" + str(datetime.now().isoformat())),
-            connection=effective_connection,
+            (random.randint(1, 100), f"{database_name}_" + str(datetime.now().isoformat()))
         )
 
-        results = mysql_select("SELECT * FROM testtable LIMIT 5", connection=effective_connection)
+        results = mysql_select("SELECT * FROM testtable LIMIT 5")
         for row in results:
             print(row)
 
         results = mysql_select(
             "SELECT * FROM testtable WHERE id <= %s ORDER BY id DESC LIMIT %s",
-            (10, 5),
-            connection=effective_connection,
+            (10, 5)
         )
         for row in results:
             print(row)
 
         mysql_update(
             "UPDATE testtable SET value2 = %s WHERE id = %s",
-            ("updated_value_" + str(random.randint(1, 100)), 1),
-            connection=effective_connection,
+            (f"updated_{database_name}_" + str(random.randint(1, 100)), 1)
         )
 
-        topid = mysql_select("SELECT MAX(id) FROM testtable", connection=effective_connection)
+        topid = mysql_select("SELECT MAX(id) FROM testtable")
         top_id = None
         if isinstance(topid, (list, tuple)) and len(topid) > 0:
             row = topid[0]
@@ -207,11 +205,10 @@ def mysql_test_functions(connection=None):
         print(f"Top ID results: {topid if topid else 'N/A'}")
         print(f"Top ID: {top_id if top_id is not None else 'N/A'}")
 
-        delete_id = 1
+        first_id = 1
         mysql_delete(
             "DELETE FROM testtable WHERE id = %s",
-            (delete_id,) if delete_id is not None else (0,),
-            connection=effective_connection,
+            (first_id,) if first_id is not None else (0,)
         )
     except Exception as e:
         raise Exception(f"Error at mysql_test_functions: {e}")

@@ -91,25 +91,25 @@ if __name__ == "__main__":
                 value2 TEXT NULL
             )
             """
-    # created = init_sqlite_db(createscript=sqlite_create_script)
-    # print(f"SQLite database created: {created} (or it already existed)")
+    other_sqlite3_path = "something_else.db"
+
+    created = init_sqlite_db(createscript=sqlite_create_script)
+    print(f"SQLite database created: {created} (or it already existed)")
 
     # Test SQLITE with custom connection
-    # created = init_sqlite_db(createscript=sqlite_create_script, connection="something_else.db")
-    # print(f"SQLite database created with custom connection: {created} (or it already existed)")
+    created = init_sqlite_db(createscript=sqlite_create_script, connection=other_sqlite3_path)
+    print(f"SQLite database created with custom connection: {created} (or it already existed)")
 
     # Test SQLITE Default connection
-    # configure(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")  # Change to "MYSQL" to test MySQL
+    configure(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")  # Change to "MYSQL" to test MySQL
 
-    # sqlite_test_functions()
-    # sqlite_test_functions(connection="something_else.db")
+    sqlite_test_functions()
 
-    # sqlite_test_functions(connection="test_sqlite_035.db")  # Test SQLITE with custom connection
-    # create_db_and_run_tests()
+    create_db_and_run_tests()
 
     # Test MYSQL Default connection
-    # configure(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)  # Change to "MYSQL" to test MySQL
-    # mysql_test_functions()
+    configure(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)  # Change to "MYSQL" to test MySQL
+    mysql_test_functions()
 
     custom_mysql_settings: dict[str, Any] = {
         "host": "127.0.0.1",
@@ -121,11 +121,15 @@ if __name__ == "__main__":
         "collation": "utf8mb4_unicode_ci",
     }
 
-    # Test MYSQL with custom connection
+    # Test MYSQL with custom reconfigured settings
     configure(default_sqlprovider="MYSQL", mysql_connection=custom_mysql_settings)  # Change to "MYSQL" to test MySQL
     # This will create the database if it doesn't exist. Database name = test_db_02
     init_mysql_db(connection=custom_mysql_settings)
     create_db_and_run_tests()
-    # mysql_test_functions()
 
+    print("\n\n==================== Running SELECT queries on both databases ====================")
+    configure(default_sqlprovider="SQLITE")
+    run_select_queries()
+
+    # configure(default_sqlprovider="MYSQL")
     # run_select_queries()
