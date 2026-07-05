@@ -125,21 +125,24 @@ def sqlite_delete(sqlquery: str, parameters: Sequence[Any] | None = None, connec
 
 
 def sqlite_test_functions(connection=None):
+    def effective_connection():
+        return connection if connection is not None else get_default_sqlite_connection()
+
     try:
         sqlite_insert(
             "INSERT INTO testtable (value1, value2) VALUES (?, ?)",
             (random.randint(1, 100), "datetime_" + str(datetime.now().isoformat())),
-            connection=connection,
+            connection=effective_connection(),
         )
 
-        results = sqlite_select("SELECT * FROM testtable LIMIT 5", connection=connection)
+        results = sqlite_select("SELECT * FROM testtable LIMIT 5", connection=effective_connection())
         for row in results:
             print(row)
 
         results = sqlite_select(
             "SELECT * FROM testtable WHERE id <= ? ORDER BY id DESC LIMIT ?",
             (10, 5),
-            connection=connection,
+            connection=effective_connection(),
         )
         for row in results:
             print(row)
@@ -147,10 +150,12 @@ def sqlite_test_functions(connection=None):
         sqlite_update(
             "UPDATE testtable SET value2 = ? WHERE id = ?",
             ("updated_value_" + str(random.randint(1, 100)), 1),
-            connection=connection,
+            connection=effective_connection(),
         )
 
-        topid = sqlite_select("SELECT MAX(id) FROM testtable", connection=connection)
+        topid = sqlite_select(
+            "SELECT MAX(id) FROM testtable", connection=effective_connection()
+        )
         top_id = None
         if isinstance(topid, (list, tuple)) and len(topid) > 0:
             row = topid[0]
@@ -164,7 +169,7 @@ def sqlite_test_functions(connection=None):
         sqlite_delete(
             "DELETE FROM testtable WHERE id = ?",
             (delete_id,) if delete_id is not None else (0,),
-            connection=connection,
+            connection=effective_connection(),
         )
     except Exception as e:
         raise Exception(f"Error at sqlite_test_functions: {e}")

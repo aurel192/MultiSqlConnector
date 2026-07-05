@@ -124,21 +124,25 @@ def mysql_delete(sqlquery, parameters=None, connection=None):
 
 
 def mysql_test_functions(connection=None):
+    effective_connection = (
+        get_default_mysql_connection() if connection is None else connection
+    )
+
     try:
         mysql_insert(
             "INSERT INTO testtable (value1, value2) VALUES (%s, %s)",
             (random.randint(1, 100), "datetime_" + str(datetime.now().isoformat())),
-            connection=connection,
+            connection=effective_connection,
         )
 
-        results = mysql_select("SELECT * FROM testtable LIMIT 5", connection=connection)
+        results = mysql_select("SELECT * FROM testtable LIMIT 5", connection=effective_connection)
         for row in results:
             print(row)
 
         results = mysql_select(
             "SELECT * FROM testtable WHERE id <= %s ORDER BY id DESC LIMIT %s",
             (10, 5),
-            connection=connection,
+            connection=effective_connection,
         )
         for row in results:
             print(row)
@@ -146,10 +150,10 @@ def mysql_test_functions(connection=None):
         mysql_update(
             "UPDATE testtable SET value2 = %s WHERE id = %s",
             ("updated_value_" + str(random.randint(1, 100)), 1),
-            connection=connection,
+            connection=effective_connection,
         )
 
-        topid = mysql_select("SELECT MAX(id) FROM testtable", connection=connection)
+        topid = mysql_select("SELECT MAX(id) FROM testtable", connection=effective_connection)
         top_id = None
         if isinstance(topid, (list, tuple)) and len(topid) > 0:
             row = topid[0]
@@ -163,7 +167,7 @@ def mysql_test_functions(connection=None):
         mysql_delete(
             "DELETE FROM testtable WHERE id = %s",
             (delete_id,) if delete_id is not None else (0,),
-            connection=connection,
+            connection=effective_connection,
         )
     except Exception as e:
         raise Exception(f"Error at mysql_test_functions: {e}")

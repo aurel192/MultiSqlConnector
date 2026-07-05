@@ -115,7 +115,14 @@ def run_select_queries():
 
 
 if __name__ == "__main__":
+
+    # Test SQLITE Default connection
     configure(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")  # Change to "MYSQL" to test MySQL
+    sqlite_test_functions()
+
+    # Test MYSQL Default connection
     # configure(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)  # Change to "MYSQL" to test MySQL
-    create_db_and_run_tests()
-    run_select_queries()
+    # mysql_test_functions()
+
+    # create_db_and_run_tests()
+    # run_select_queries()
