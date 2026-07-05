@@ -55,6 +55,10 @@ def mysql_execute(sqlquery, parameters=None, connection=None):
     cur = None
     try:
         conn_config = get_mysql_connection_parameters(connection) if connection is None else connection
+        # CREATE DATABASE must connect at server level (without selecting a DB first).
+        if isinstance(sqlquery, str) and "CREATE DATABASE" in sqlquery.upper():
+            conn_config = conn_config.copy()
+            conn_config.pop("database", None)
         conn = mysql.connector.connect(**conn_config)
         cur = conn.cursor()
         if parameters is not None:

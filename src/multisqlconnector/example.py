@@ -123,6 +123,8 @@ if __name__ == "__main__":
 
     # Test MYSQL with custom connection
     configure(default_sqlprovider="MYSQL", mysql_connection=custom_mysql_settings)  # Change to "MYSQL" to test MySQL
+    # This will create the database if it doesn't exist. Database name = test_db_02
+    init_mysql_db(connection=custom_mysql_settings)
     create_db_and_run_tests()
     # mysql_test_functions()
 
