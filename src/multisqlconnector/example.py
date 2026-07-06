@@ -7,9 +7,9 @@ if __package__ is None or __package__ == "":
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
-from multisqlconnector import configure as configure_db_connection, sql_select, sql_select_cast, sql_select_named
+from multisqlconnector import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete,sql_select_cast, sql_select_named
 from multisqlconnector import db_config
-from multisqlconnector.db_config import mysql_config, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER
+from multisqlconnector.db_config import mysql_config, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER, configure as configure_db_connection, set_custom_placeholder
 from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_db
 from multisqlconnector.sqlite3helper import *
 
@@ -75,7 +75,7 @@ def run_select_queries():
 
     print(f"--------  WITH NAMED RESULTS --------")
     named_rows = sql_select_named(
-        sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > %p",
+        sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > :param:",
         parameters=(2,)
     )
 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
 
     # Test MYSQL connections
-    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)  # Change to "MYSQL" to test MySQL
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)
     mysql_test_functions()
 
     custom_mysql_settings: dict[str, Any] = {
@@ -137,13 +137,15 @@ if __name__ == "__main__":
     }
 
     # Test MYSQL with custom connection settings
-    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=custom_mysql_settings)  # Change to "MYSQL" to test MySQL
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=custom_mysql_settings)
     # This will create the database if it doesn't exist. Database name = test_db_02
     init_mysql_db(connection=custom_mysql_settings)
     create_db_and_run_tests()
 
 
     print("\n\n==================== Running SELECT Queries on both MySQL and SQLite databases ====================")
+    
+    set_custom_placeholder(":param:") 
 
     configure_db_connection(default_sqlprovider="MYSQL")
     run_select_queries()

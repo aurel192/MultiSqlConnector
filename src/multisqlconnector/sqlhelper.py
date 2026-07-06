@@ -14,45 +14,26 @@ from .sqlite3helper import (
 )
 
 
-def _sqlprovider() -> str:
-    sqlprovider = str(db_config.DEFAULT_SQL_PROVIDER).strip().upper()
-    if sqlprovider not in {"MYSQL", "SQLITE"}:
-        raise ValueError(f"Unsupported database type: {db_config.DEFAULT_SQL_PROVIDER}")
-    return sqlprovider
-
-
 def _normalize_query(sqlquery: str) -> str:
-    sqlprovider = _sqlprovider()
+    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
+        sqlquery = sqlquery.replace(db_config.CUSTOM_PLACEHOLDER, "%s")
         sqlquery = sqlquery.replace("%p", "%s")
         sqlquery = sqlquery.replace("?p", "%s")
         sqlquery = sqlquery.replace(":p", "%s")
         sqlquery = sqlquery.replace(":param", "%s")
         return sqlquery
 
+    sqlquery = sqlquery.replace(db_config.CUSTOM_PLACEHOLDER, "?")
     sqlquery = sqlquery.replace("%p", "?")
     sqlquery = sqlquery.replace("?p", "?")
     sqlquery = sqlquery.replace(":p", "?")
     sqlquery = sqlquery.replace(":param", "?")
     return sqlquery
 
-
-def _normalize_query_advanced(sqlquery: str) -> str:
-    placeholders = re.findall(r":\d+", sqlquery)
-    sqlprovider = _sqlprovider()
-    if sqlprovider == "MYSQL":
-        for ph in placeholders:
-            sqlquery = sqlquery.replace(ph, "%s", 1)
-        return sqlquery
-
-    for ph in placeholders:
-        sqlquery = sqlquery.replace(ph, "?", 1)
-    return sqlquery
-
-
 def sql_execute(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = _sqlprovider()
+    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_execute(query, parameters, connection=connection)
     return sqlite_execute(query, parameters, connection=connection)
@@ -80,7 +61,7 @@ def sql_select_named(sqlquery, parameters=None, connection=None):
     conn = None
     cur = None
     try:
-        sqlprovider = _sqlprovider()
+        sqlprovider = db_config.DEFAULT_SQL_PROVIDER
         if sqlprovider == "MYSQL":
             conn_config = db_config.mysql_config if connection is None else connection
             conn = mysql.connector.connect(**conn_config)
@@ -106,7 +87,7 @@ def sql_select_named(sqlquery, parameters=None, connection=None):
 
 def sql_select(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = _sqlprovider()
+    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_select(query, parameters, connection=connection)
     return sqlite_select(query, parameters, connection=connection)
@@ -114,7 +95,7 @@ def sql_select(sqlquery, parameters=None, connection=None):
 
 def sql_insert(sqlquery, parameters=None, many: bool = False, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = _sqlprovider()
+    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_insert(query, parameters, many=many, connection=connection)
     return sqlite_insert(query, parameters, many=many, connection=connection)
@@ -122,7 +103,7 @@ def sql_insert(sqlquery, parameters=None, many: bool = False, connection=None):
 
 def sql_update(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = _sqlprovider()
+    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_update(query, parameters, connection=connection)
     return sqlite_update(query, parameters, connection=connection)
@@ -130,7 +111,7 @@ def sql_update(sqlquery, parameters=None, connection=None):
 
 def sql_delete(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = _sqlprovider()
+    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_delete(query, parameters, connection=connection)
     return sqlite_delete(query, parameters, connection=connection)

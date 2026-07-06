@@ -7,6 +7,8 @@ DEFAULT_SQL_PROVIDER = "SQLITE"
 # SQLITE_DB_PATH = str(Path.cwd() / "test_sqlite.db")
 SQLITE_DB_PATH = "test_sqlite.db"
 
+CUSTOM_PLACEHOLDER = "%p"  # Custom placeholder for parameters in SQL queries
+
 mysql_config: dict[str, Any] = {
     "host": "127.0.0.1",
     "port": 3306,
@@ -65,3 +67,10 @@ def configure(
     # Set mysql connection settings based on the provided arguments (mysql_connection)
     if mysql_connection is not None:
         mysql_config = mysql_connection.copy()
+
+def set_custom_placeholder(placeholder: str) -> None:
+    """Set a custom placeholder for SQL queries."""
+    global CUSTOM_PLACEHOLDER
+    if not isinstance(placeholder, str) or not placeholder.strip():
+        raise ValueError("Custom placeholder must be a non-empty string.")
+    CUSTOM_PLACEHOLDER = placeholder.strip()
