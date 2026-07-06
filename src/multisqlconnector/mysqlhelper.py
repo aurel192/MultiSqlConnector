@@ -50,6 +50,80 @@ def init_mysql_db(connection=None):
         raise Exception(f"Error initializing MySQL database: {e}")
 
 
+def _split_sql_script(sql_script: str) -> list[str]:
+    statements: list[str] = []
+    buffer: list[str] = []
+    in_single = False
+    in_double = False
+    in_backtick = False
+    in_line_comment = False
+    in_block_comment = False
+    i = 0
+    length = len(sql_script)
+
+    while i < length:
+        ch = sql_script[i]
+        nxt = sql_script[i + 1] if i + 1 < length else ""
+
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+            i += 1
+            continue
+
+        if in_block_comment:
+            if ch == "*" and nxt == "/":
+                in_block_comment = False
+                i += 2
+                continue
+            i += 1
+            continue
+
+        if not in_single and not in_double and not in_backtick:
+            if ch == "-" and nxt == "-":
+                third = sql_script[i + 2] if i + 2 < length else ""
+                if third == "" or third.isspace():
+                    in_line_comment = True
+                    i += 2
+                    continue
+            if ch == "#":
+                in_line_comment = True
+                i += 1
+                continue
+            if ch == "/" and nxt == "*":
+                in_block_comment = True
+                i += 2
+                continue
+
+        if ch == "'" and not in_double and not in_backtick:
+            prev = sql_script[i - 1] if i > 0 else ""
+            if prev != "\\":
+                in_single = not in_single
+        elif ch == '"' and not in_single and not in_backtick:
+            prev = sql_script[i - 1] if i > 0 else ""
+            if prev != "\\":
+                in_double = not in_double
+        elif ch == "`" and not in_single and not in_double:
+            in_backtick = not in_backtick
+
+        if ch == ";" and not in_single and not in_double and not in_backtick:
+            statement = "".join(buffer).strip()
+            if statement:
+                statements.append(statement)
+            buffer = []
+            i += 1
+            continue
+
+        buffer.append(ch)
+        i += 1
+
+    final_statement = "".join(buffer).strip()
+    if final_statement:
+        statements.append(final_statement)
+
+    return statements
+
+
 def mysql_execute(sqlquery, parameters=None, connection=None):
     conn = None
     cur = None
@@ -59,9 +133,18 @@ def mysql_execute(sqlquery, parameters=None, connection=None):
         if isinstance(sqlquery, str) and "CREATE DATABASE" in sqlquery.upper():
             conn_config = conn_config.copy()
             conn_config.pop("database", None)
+        # if isinstance(sqlquery, str) and "INSERT INTO" in sqlquery.upper():
+        #     conn_config = conn_config.copy()
+        #     conn_config.pop("database", None)
         conn = mysql.connector.connect(**conn_config)
         cur = conn.cursor()
-        if parameters is not None:
+
+        # Run SQL dumps/scripts statement-by-statement for connector compatibility.
+        if parameters is None and isinstance(sqlquery, str) and ";" in sqlquery:
+            statements = _split_sql_script(sqlquery)
+            for statement in statements:
+                cur.execute(statement)
+        elif parameters is not None:
             cur.execute(sqlquery, parameters)
         else:
             cur.execute(sqlquery)
