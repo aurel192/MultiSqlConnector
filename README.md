@@ -28,6 +28,19 @@ from multisqlconnector import DEFAULT_SQL_PROVIDER, configure, sql_insert, sql_s
 print(DEFAULT_SQL_PROVIDER)  # "SQLITE" by default
 ```
 
+## Switch providers and databases on the fly without a wall of text
+
+The main goal of this package is to let you switch quickly between SQLite and MySQL,
+and also switch to different database files or schemas, without rewriting your query code.
+
+With `configure(...)`, you can:
+
+- change SQL provider at runtime (`SQLITE` <-> `MYSQL`) (`MsSQL` and `PostgreSQL` soon...)
+- swap SQLite database files (for example `test_sqlite.db` and `something_else_sqlite.db`)
+- swap MySQL connection settings (for example `test_db_01` and `test_db_02`)
+- keep using the same helper functions (`sql_select`, `sql_insert`, `sql_update`, `sql_delete`, `sql_execute`)
+- You can modify which database to connect with one simple function call. So you can use multiple databases and database providers.
+
 ## MySQL usage
 ```python
 configure(
