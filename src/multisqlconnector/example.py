@@ -7,7 +7,7 @@ if __package__ is None or __package__ == "":
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
-from multisqlconnector import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete,sql_select_cast, sql_select_named
+from multisqlconnector import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete
 from multisqlconnector import db_config
 from multisqlconnector.db_config import mysql_config, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER, configure as configure_db_connection, set_custom_placeholder
 from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_db
@@ -50,36 +50,35 @@ def run_select_queries():
     current_provider = db_config.DEFAULT_SQL_PROVIDER
     db_name = db_config.SQLITE_DB_PATH if current_provider == "SQLITE" else db_config.mysql_config.get("database", "Unknown")
     print(f"-------- RUNNING SELECT QUERIES ON {current_provider} Database: {db_name} --------")
-    print(f"--------  WITHOUT CASTING --------")
-    result = sql_select(
-        sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > %p",
-        parameters=(2,)
-    )
+    # print(f"--------  WITHOUT CASTING --------")
+    # result = sql_select(
+    #     sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > %p",
+    #     parameters=(2,)
+    # )
 
-    print(f"Not casted rows: {result}\n")
-    for row in result:
-        print(f"Row ID: {row[0]}")  # type: ignore[index]
-        print(f"Row: {row}")
+    # print(f"Not casted rows: {result}\n")
+    # for row in result:
+    #     print(f"Row ID: {row[0]}")  # type: ignore[index]
+    #     print(f"Row: {row}")
 
-    print(f"--------  WITH CASTING --------")
-    casted_rows = sql_select_cast(
-        "SELECT id, value1, value2 FROM testtable WHERE id > %p",
-        result_types=(int, int, str),
-        parameters=(2,)
-    )
+    # print(f"--------  WITH CASTING --------")
+    # casted_rows = sql_select_cast(
+    #     "SELECT id, value1, value2 FROM testtable WHERE id > %p",
+    #     result_types=(int, int, str),
+    #     parameters=(2,)
+    # )
 
-    print(f"Casted rows: {casted_rows}\n")
-    for row in casted_rows:
-        print(f"Row ID: {row[0]}")  # type: ignore[index]
-        print(f"Row: {row}")
+    # print(f"Casted rows: {casted_rows}\n")
+    # for row in casted_rows:
+    #     print(f"Row ID: {row[0]}")  # type: ignore[index]
+    #     print(f"Row: {row}")
 
-    print(f"--------  WITH NAMED RESULTS --------")
+    print(f"--------  WITH NAMED RESULTS WITH 2 PARAMS --------")
     named_rows = sql_select_named(
-        sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > :param:",
-        parameters=(2,)
+        sqlquery="SELECT id, value1, value2 FROM testtable WHERE id >= :param: AND id <= :param:",
+        parameters=(1, 100, )
     )
 
-    print(f"Named rows: {named_rows}\n")
     for row in named_rows:
         print(f"Row ID: {row['id']}")
         print(f"Row: {row}")
@@ -142,7 +141,7 @@ def test_function_02():
 
     print("\n\n==================== Running SELECT Queries on both MySQL and SQLite databases ====================")
     
-    set_custom_placeholder(":param:") 
+    # set_custom_placeholder(":param:") 
 
     configure_db_connection(default_sqlprovider="MYSQL")
     run_select_queries()
@@ -194,7 +193,7 @@ def create_and_insert_into_sqlite_database(db_path: str = "testdb_sqlite_192.db"
         print(f"Error creating SQLite test database: {e}")
 
 
-def create_sqlite_testdb():
+def create_sqlite_testdb_using_scripts():
     create_sqlite_database()
     insert_into_sqlite_database()
     create_and_insert_into_sqlite_database()
@@ -228,12 +227,17 @@ if __name__ == "__main__":
     # clear screen
     print("\033[2J\033[H", end="")
 
-    create_sqlite_testdb()
-    # sqlite_test_functions()
+    create_db_and_run_tests()
+    sqlite_test_functions()
 
+    # create_sqlite_testdb_using_scripts()
 
+    # set_custom_placeholder(":param:")
     # create_mysql_testdb()
 
     # test_function_01()
 
     # test_function_02()
+
+    # configure_db_connection(default_sqlprovider="MYSQL")
+    # run_select_queries()

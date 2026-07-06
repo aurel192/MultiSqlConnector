@@ -18,17 +18,17 @@ def _normalize_query(sqlquery: str) -> str:
     sqlprovider = db_config.DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         sqlquery = sqlquery.replace(db_config.CUSTOM_PLACEHOLDER, "%s")
+        sqlquery = sqlquery.replace(":param:", "%s")
         sqlquery = sqlquery.replace("%p", "%s")
         sqlquery = sqlquery.replace("?p", "%s")
         sqlquery = sqlquery.replace(":p", "%s")
-        sqlquery = sqlquery.replace(":param", "%s")
         return sqlquery
 
     sqlquery = sqlquery.replace(db_config.CUSTOM_PLACEHOLDER, "?")
+    sqlquery = sqlquery.replace(":param:", "?")
     sqlquery = sqlquery.replace("%p", "?")
     sqlquery = sqlquery.replace("?p", "?")
     sqlquery = sqlquery.replace(":p", "?")
-    sqlquery = sqlquery.replace(":param", "?")
     return sqlquery
 
 def sql_execute(sqlquery, parameters=None, connection=None):

@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multisqlconnector_aurel192"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Aurel Kovacs", email="kovacsaurel@gmail.com" },
 ]
-description = "SQL Wrapper functions for MySql, MariaDb, Sqlite3, more coming soon (WIP)"
+description = "SQL Wrapper functions for MySql, MariaDb, Sqlite3. MsSql and PostgreSQL coming soon (WIP)"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
