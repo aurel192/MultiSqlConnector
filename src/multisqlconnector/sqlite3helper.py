@@ -47,7 +47,9 @@ def sqlite_execute(sqlquery: str, parameters: Sequence[Any] | None = None, conne
     try:
         conn = get_sqlite_connection(connection)
         cur = conn.cursor()
-        if parameters is not None:
+        if parameters is None and isinstance(sqlquery, str) and ";" in sqlquery:
+            cur.executescript(sqlquery)
+        elif parameters is not None:
             cur.execute(sqlquery, parameters)
         else:
             cur.execute(sqlquery)

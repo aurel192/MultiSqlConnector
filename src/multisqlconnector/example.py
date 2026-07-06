@@ -84,6 +84,7 @@ def run_select_queries():
         print(f"Row ID: {row['id']}")
         print(f"Row: {row}")
 
+
 def test_function_01():
     sqlite_create_script = f"""
             CREATE TABLE IF NOT EXISTS testtable (
@@ -115,6 +116,7 @@ def test_function_01():
     mysql_test_functions()
 
     sqlite_test_functions("something_else_sqlite.db")
+
 
 def test_function_02():
     # Test MYSQL connections
@@ -148,14 +150,37 @@ def test_function_02():
     configure_db_connection(default_sqlprovider="SQLITE")
     run_select_queries()
 
-# Run Sqlite SQL create script to create the database and a table if it doesn't exist
-def create_sqlite_testdb():
-    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="testdb_sqlite_01.db")
-    sqlite_create_script_path = Path(__file__).resolve().parent / "sqlite_testtable_create.sql"
-    with open(sqlite_create_script_path, "r", encoding="utf-8") as f:
-        sqlite_create_script = f.read()
 
-    sql_execute(sqlquery=sqlite_create_script)
+def create_sqlite_testdb():
+    sql_files_path = Path(__file__).resolve().parent / "etc"
+    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="testdb_sqlite_192.db")
+
+    # try:
+    #     sqlite_create_script_path = sql_files_path / "sqlite_test_create.sql"
+    #     with open(sqlite_create_script_path, "r", encoding="utf-8") as f:
+    #         sqlite_create_script = f.read()
+
+    #     sql_execute(sqlquery=sqlite_create_script)
+    # except Exception as e:
+    #     print(f"Error creating SQLite test database: {e}")
+
+    # try:
+    #     sqlite_insert_script_path = sql_files_path / "sqlite_test_insert.sql"
+    #     with open(sqlite_insert_script_path, "r", encoding="utf-8") as f:
+    #         sqlite_insert_script = f.read()
+
+    #     sql_execute(sqlquery=sqlite_insert_script)
+    # except Exception as e:
+    #     print(f"Error creating SQLite test database: {e}")
+
+    try:
+        sqlite_create_and_insert_script_path = sql_files_path / "sqlite_test_create_and_insert.sql"
+        with open(sqlite_create_and_insert_script_path, "r", encoding="utf-8") as f:
+            sqlite_create_and_insert_script = f.read()
+
+        sql_execute(sqlquery=sqlite_create_and_insert_script)
+    except Exception as e:
+        print(f"Error creating SQLite test database: {e}")
 
 
 def create_mysql_testdb():
@@ -163,7 +188,6 @@ def create_mysql_testdb():
     configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config_02)
 
     try:
-        # I moved the sql files to etc folder, i need to update the path to the sql files
         mysql_create_script_path = sql_files_path / "mysql_test_db_02_create.sql"
         with open(mysql_create_script_path, "r", encoding="utf-8") as f:
             mysql_create_script = f.read()
@@ -187,9 +211,10 @@ if __name__ == "__main__":
     # clear screen
     print("\033[2J\033[H", end="")
 
-    # create_sqlite_testdb()
-    
+    create_sqlite_testdb()
     # sqlite_test_functions()
+
+    # create_db_and_run_tests()
 
     # create_mysql_testdb()
 

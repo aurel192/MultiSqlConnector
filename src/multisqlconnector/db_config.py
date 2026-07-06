@@ -7,7 +7,7 @@ DEFAULT_SQL_PROVIDER = "SQLITE"
 # SQLITE_DB_PATH = str(Path.cwd() / "test_sqlite.db")
 SQLITE_DB_PATH = "test_sqlite.db"
 
-CUSTOM_PLACEHOLDER = "%p"  # Custom placeholder for parameters in SQL queries
+CUSTOM_PLACEHOLDER = ":param:"  # Custom placeholder for parameters in SQL queries
 
 mysql_config: dict[str, Any] = {
     "host": "127.0.0.1",
