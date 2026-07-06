@@ -1,9 +1,33 @@
 import random
+import re
 import sqlite3
 from datetime import datetime
 from typing import Any, Sequence
 
 from . import db_config
+
+
+def _sanitize_sqlite_script(sqlquery: str) -> str:
+    """Remove unsupported or unnecessary lines from SQL dump scripts before executescript."""
+    cleaned_lines: list[str] = []
+    for line in sqlquery.splitlines():
+        stripped = line.strip()
+
+        # Remove single-line comments from SQL dump headers.
+        if stripped.startswith("--"):
+            continue
+
+        # SQLite does not support CREATE DATABASE statements. (Comes from Heidisql or MySQL dump scripts)
+        if re.match(r"^CREATE\s+DATABASE\s+IF\s+NOT\s+EXISTS\b", stripped, flags=re.IGNORECASE):
+            continue
+
+        # Keep scripts tidy when a removed statement leaves a standalone semicolon.
+        if stripped == ";":
+            continue
+
+        cleaned_lines.append(line)
+
+    return "\n".join(cleaned_lines)
 
 def get_sqlite_database_path(sqlite_db_path: str | None = None):
     try:
@@ -48,7 +72,8 @@ def sqlite_execute(sqlquery: str, parameters: Sequence[Any] | None = None, conne
         conn = get_sqlite_connection(connection)
         cur = conn.cursor()
         if parameters is None and isinstance(sqlquery, str) and ";" in sqlquery:
-            cur.executescript(sqlquery)
+            sanitized_sql = _sanitize_sqlite_script(sqlquery)
+            cur.executescript(sanitized_sql)
         elif parameters is not None:
             cur.execute(sqlquery, parameters)
         else:

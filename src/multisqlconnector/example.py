@@ -151,27 +151,38 @@ def test_function_02():
     run_select_queries()
 
 
-def create_sqlite_testdb():
+# Create SQLite database and insert test data
+def create_sqlite_database(db_path: str = "testdb_sqlite_01.db"):
     sql_files_path = Path(__file__).resolve().parent / "etc"
-    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="testdb_sqlite_192.db")
+    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path=db_path)
 
-    # try:
-    #     sqlite_create_script_path = sql_files_path / "sqlite_test_create.sql"
-    #     with open(sqlite_create_script_path, "r", encoding="utf-8") as f:
-    #         sqlite_create_script = f.read()
+    try:
+        sqlite_create_script_path = sql_files_path / "sqlite_test_create.sql"
+        with open(sqlite_create_script_path, "r", encoding="utf-8") as f:
+            sqlite_create_script = f.read()
 
-    #     sql_execute(sqlquery=sqlite_create_script)
-    # except Exception as e:
-    #     print(f"Error creating SQLite test database: {e}")
+        sql_execute(sqlquery=sqlite_create_script)
+    except Exception as e:
+        print(f"Error creating SQLite test database: {e}")
 
-    # try:
-    #     sqlite_insert_script_path = sql_files_path / "sqlite_test_insert.sql"
-    #     with open(sqlite_insert_script_path, "r", encoding="utf-8") as f:
-    #         sqlite_insert_script = f.read()
 
-    #     sql_execute(sqlquery=sqlite_insert_script)
-    # except Exception as e:
-    #     print(f"Error creating SQLite test database: {e}")
+def insert_into_sqlite_database(db_path: str = "testdb_sqlite_01.db"):
+    sql_files_path = Path(__file__).resolve().parent / "etc"
+    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path=db_path)
+
+    try:
+        sqlite_insert_script_path = sql_files_path / "sqlite_test_insert.sql"
+        with open(sqlite_insert_script_path, "r", encoding="utf-8") as f:
+            sqlite_insert_script = f.read()
+
+        sql_execute(sqlquery=sqlite_insert_script)
+    except Exception as e:
+        print(f"Error creating SQLite test database: {e}")
+
+
+def create_and_insert_into_sqlite_database(db_path: str = "testdb_sqlite_192.db"):
+    sql_files_path = Path(__file__).resolve().parent / "etc"
+    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path=db_path)
 
     try:
         sqlite_create_and_insert_script_path = sql_files_path / "sqlite_test_create_and_insert.sql"
@@ -181,6 +192,12 @@ def create_sqlite_testdb():
         sql_execute(sqlquery=sqlite_create_and_insert_script)
     except Exception as e:
         print(f"Error creating SQLite test database: {e}")
+
+
+def create_sqlite_testdb():
+    create_sqlite_database()
+    insert_into_sqlite_database()
+    create_and_insert_into_sqlite_database()
 
 
 def create_mysql_testdb():
@@ -214,7 +231,6 @@ if __name__ == "__main__":
     create_sqlite_testdb()
     # sqlite_test_functions()
 
-    # create_db_and_run_tests()
 
     # create_mysql_testdb()
 
