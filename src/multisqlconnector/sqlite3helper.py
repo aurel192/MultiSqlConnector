@@ -7,33 +7,41 @@ from . import db_config
 
 def get_sqlite_database_path(sqlite_db_path: str | None = None):
     try:
+        errormsg = "sqlite_db_path cannot be an empty string or None. Set a valid path using the configure function!"
         if sqlite_db_path is not None and sqlite_db_path.strip() == "":
-            raise ValueError("get_sqlite_database_path sqlite_db_path cannot be an empty string")
+            raise ValueError(errormsg)
+        if db_config.SQLITE_DB_PATH is None or (db_config.SQLITE_DB_PATH is not None and db_config.SQLITE_DB_PATH.strip() == ""):
+            raise ValueError(errormsg)
         path = sqlite_db_path if sqlite_db_path is not None else db_config.SQLITE_DB_PATH
         return path
     except Exception as e:
-        path = sqlite_db_path if sqlite_db_path is not None and sqlite_db_path != "" else ""
-        raise Exception(f"Error getting SQLite database path in get_sqlite_database_path: sqlite_db_path={path}, {e}")
+        raise Exception(f"Error getting SQLite database path in get_sqlite_database_path: sqlite_db_path={sqlite_db_path}, {e}")
 
 
 def get_sqlite_connection(sqlite_db_path: str | None = None):
     try:
-        sqlite_db_path = get_sqlite_database_path(sqlite_db_path)
-        return sqlite3.connect(sqlite_db_path)
+        db_path = get_sqlite_database_path(sqlite_db_path)
+        return sqlite3.connect(db_path)
     except Exception as e:
-        path = sqlite_db_path if sqlite_db_path is not None and sqlite_db_path != "" else ""
-        raise Exception(f"Error getting SQLite connection in get_sqlite_connection: sqlite_db_path={path}, {e}")
+        raise Exception(f"Error getting SQLite connection in get_sqlite_connection: sqlite_db_path={sqlite_db_path}, {e}")
 
 
-def init_sqlite_db(connection=db_config.SQLITE_DB_PATH, createscript: str | None = None):
+def init_sqlite_db(conn: str | None = None, createscript: str | None = None):
     try:
-        sqlite_db_created = sqlite_execute(sqlquery=createscript, parameters=None, connection=connection) # type: ignore
+        # it prevents the case where conn is None and python caches a default old value instead of using the provided parameter (Yeah I know. WTF!?)
+        resolved_conn = conn if conn is not None else db_config.SQLITE_DB_PATH
+
+        if createscript is None or createscript.strip() == "":
+            raise ValueError("createscript cannot be empty")
+
+        sqlite_db_created = sqlite_execute(sqlquery=createscript, parameters=None, connection=resolved_conn)
         return sqlite_db_created
     except Exception as e:
         raise Exception(f"Error initializing SQLite database: {e}")
 
 
 def sqlite_execute(sqlquery: str, parameters: Sequence[Any] | None = None, connection=None):
+    print(f"sqlite_execute conn: {connection}")
     conn = None
     cur = None
     try:
@@ -151,7 +159,7 @@ def sqlite_test_functions(connection=None):
     try:
         db_path = get_sqlite_database_path(connection)
         print("======== Running SQLite Test Functions ======================")
-        print(f"Using connection: {db_path}")
+        print(f"======  Using connection: {db_path} ======")
         sqlite_insert(
             "INSERT INTO testtable (value1, value2) VALUES (?, ?)",
             (random.randint(1, 100), f"{db_path} - {str(datetime.now().isoformat())}"),

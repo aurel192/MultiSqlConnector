@@ -17,7 +17,7 @@ def get_mysql_connection_parameters(connection=None):
     except Exception as e:
         raise Exception(f"Error getting MySQL connection parameters: {e}")
 
-
+#: TODO: Add a function to initialize the MySQL database and create the test table if it doesn't exist. Using sql script to create the db and tables.
 def init_mysql_db(connection=None):
     try:
         # Create a database if it doesn't exist
@@ -169,9 +169,11 @@ def mysql_delete(sqlquery, parameters=None, connection=None):
 
 def mysql_test_functions(connection=None):
     try:
-        print("======== Running MySQL Test Functions ======================")
         mysql_config = get_mysql_connection_parameters(connection).copy()
         database_name = mysql_config.get("database")
+        print("======== Running MySQL Test Functions =======================")
+        print(f"======  Using connection: {database_name} ======")
+        mysql_config = get_mysql_connection_parameters(connection).copy()
         print(f"Using database: {database_name}")
         mysql_config = get_mysql_connection_parameters(connection).copy()
         mysql_insert(
