@@ -227,8 +227,8 @@ if __name__ == "__main__":
     # clear screen
     print("\033[2J\033[H", end="")
 
-    create_db_and_run_tests()
-    sqlite_test_functions()
+    # create_db_and_run_tests()
+    # sqlite_test_functions()
 
     # create_sqlite_testdb_using_scripts()
 
@@ -241,3 +241,4 @@ if __name__ == "__main__":
 
     # configure_db_connection(default_sqlprovider="MYSQL")
     # run_select_queries()
+    pass
