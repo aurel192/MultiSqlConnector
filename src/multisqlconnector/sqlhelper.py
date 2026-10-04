@@ -3,9 +3,9 @@ import sqlite3
 
 import mysql.connector
 
-from . import db_config
-from .mysqlhelper import mysql_delete, mysql_execute, mysql_insert, mysql_select, mysql_update
-from .sqlite3helper import (
+from db_config import DEFAULT_SQL_PROVIDER, CUSTOM_PLACEHOLDER, mysql_config, SQLITE_DB_PATH
+from mysqlhelper import mysql_delete, mysql_execute, mysql_insert, mysql_select, mysql_update
+from sqlite3helper import (
     sqlite_delete,
     sqlite_execute,
     sqlite_insert,
@@ -15,7 +15,7 @@ from .sqlite3helper import (
 
 
 def _normalize_query(sqlquery: str) -> str:
-    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
+    sqlprovider = DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         sqlquery = sqlquery.replace(db_config.CUSTOM_PLACEHOLDER, "%s")
         sqlquery = sqlquery.replace(":param:", "%s")

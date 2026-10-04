@@ -7,16 +7,15 @@ if __package__ is None or __package__ == "":
     if str(src_root) not in sys.path:
         sys.path.insert(0, str(src_root))
 
-from multisqlconnector import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete
-from multisqlconnector import db_config
-from multisqlconnector.db_config import mysql_config, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER, configure as configure_db_connection, set_custom_placeholder
-from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_testdb
-from multisqlconnector.sqlite3helper import *
+from sqlhelper import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete
+from db_config import mysql_config, mysql_config_02, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER, configure as configure_db_connection, set_custom_placeholder
+from mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_testdb
+from sqlite3helper import *
 
 
 def create_db_and_run_tests():
-    current_provider = db_config.DEFAULT_SQL_PROVIDER
-    current_db = db_config.SQLITE_DB_PATH if current_provider == "SQLITE" else db_config.mysql_config.get("database", "Unknown")
+    current_provider = DEFAULT_SQL_PROVIDER
+    current_db = SQLITE_DB_PATH if current_provider == "SQLITE" else mysql_config.get("database", "Unknown")
     print(f"-------- RUNNING TESTS USING: {current_provider} (Database: {current_db}) ---------------------")
     if current_provider == "MYSQL":
         created = init_mysql_testdb()
@@ -47,8 +46,8 @@ def create_db_and_run_tests():
 
 
 def run_select_queries():
-    current_provider = db_config.DEFAULT_SQL_PROVIDER
-    db_name = db_config.SQLITE_DB_PATH if current_provider == "SQLITE" else db_config.mysql_config.get("database", "Unknown")
+    current_provider = DEFAULT_SQL_PROVIDER
+    db_name = SQLITE_DB_PATH if current_provider == "SQLITE" else mysql_config.get("database", "Unknown")
     print(f"-------- RUNNING SELECT QUERIES ON {current_provider} Database: {db_name} --------")
     # print(f"--------  WITHOUT CASTING --------")
     # result = sql_select(
@@ -96,12 +95,12 @@ def test_function_01():
     # Test Sqlite3 connection
     configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")
     created = init_sqlite_db(createscript=sqlite_create_script)
-    print(f"SQLite database {db_config.SQLITE_DB_PATH} created: {created} (or it already existed)")
+    print(f"SQLite database {SQLITE_DB_PATH} created: {created} (or it already existed)")
     sqlite_test_functions()
 
     configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="something_else_sqlite.db")
     created = init_sqlite_db(createscript=sqlite_create_script)
-    print(f"SQLite database {db_config.SQLITE_DB_PATH} created with custom connection: {created} (or it already existed)")
+    print(f"SQLite database {SQLITE_DB_PATH} created with custom connection: {created} (or it already existed)")
     create_db_and_run_tests()
 
     # Test MYSQL and Sqlite connections by switching between them
@@ -119,7 +118,7 @@ def test_function_01():
 
 def test_function_02():
     # Test MYSQL connections
-    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config)
     mysql_test_functions()
 
     custom_mysql_settings: dict[str, Any] = {
@@ -200,7 +199,7 @@ def create_sqlite_testdb_using_scripts():
 
 def create_mysql_testdb():
     sql_files_path = Path(__file__).resolve().parent / "etc"
-    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config_02)
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config_02)
 
     try:
         mysql_create_script_path = sql_files_path / "mysql_test_db_02_create.sql"
@@ -227,7 +226,7 @@ if __name__ == "__main__":
     print("\033[2J\033[H", end="")
 
     print("Starting MySQL test functions")
-    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config)
     mysql_test_functions()
     print("========================================")
     print("Finished running MySQL test functions.")

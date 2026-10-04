@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime
 from typing import Any, Sequence
 
-from . import db_config
+from db_config import SQLITE_DB_PATH
 
 
 def _sanitize_sqlite_script(sqlquery: str) -> str:
@@ -35,9 +35,9 @@ def get_sqlite_database_path(sqlite_db_path: str | None = None):
         errormsg = "sqlite_db_path cannot be an empty string or None. Set a valid path using the configure function!"
         if sqlite_db_path is not None and sqlite_db_path.strip() == "":
             raise ValueError(errormsg)
-        if db_config.SQLITE_DB_PATH is None or (db_config.SQLITE_DB_PATH is not None and db_config.SQLITE_DB_PATH.strip() == ""):
+        if SQLITE_DB_PATH is None or (SQLITE_DB_PATH is not None and SQLITE_DB_PATH.strip() == ""):
             raise ValueError(errormsg)
-        path = sqlite_db_path if sqlite_db_path is not None else db_config.SQLITE_DB_PATH
+        path = sqlite_db_path if sqlite_db_path is not None else SQLITE_DB_PATH
         return path
     except Exception as e:
         raise Exception(f"Error getting SQLite database path in get_sqlite_database_path: sqlite_db_path={sqlite_db_path}, {e}")

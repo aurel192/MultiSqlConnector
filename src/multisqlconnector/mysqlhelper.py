@@ -3,20 +3,19 @@ from datetime import datetime
 
 import mysql.connector
 
-from . import db_config
+from db_config import mysql_config
 
 
 def get_mysql_connection_parameters(connection=None):
     try:
         if connection is not None and isinstance(connection, dict):
             return connection
-        elif db_config.mysql_config is not None and isinstance(db_config.mysql_config, dict):
-            return db_config.mysql_config
+        elif mysql_config is not None and isinstance(mysql_config, dict):
+            return mysql_config
         else:
             raise ValueError("MySQL connection parameters are not properly configured.")
     except Exception as e:
         raise Exception(f"Error getting MySQL connection parameters: {e}")
-
 
 
 def _split_sql_script(sql_script: str) -> list[str]:
@@ -257,9 +256,8 @@ def mysql_test_functions(connection=None):
         database_name = mysql_config.get("database")
         print("======== Running MySQL Test Functions on =======================")
         print(f"======  Using connection: {database_name} ======")
-        # mysql_config = get_mysql_connection_parameters(connection).copy()
         print(f"Using database: {database_name}")
-        # mysql_config = get_mysql_connection_parameters(connection).copy()
+
         mysql_insert(
             "INSERT INTO testtable (value1, value2) VALUES (%s, %s)",
             (random.randint(1, 100), f"{database_name}_" + str(datetime.now().isoformat()))
@@ -275,6 +273,15 @@ def mysql_test_functions(connection=None):
         )
         for row in results:
             print(row)
+
+        # named_rows = sql_select_named(
+        #     sqlquery="SELECT id, value1, value2 FROM testtable WHERE id >= :param: AND id <= :param:",
+        #     parameters=(1, 100, )
+        # )
+
+        # for row in named_rows:
+        #     print(f"Row ID: {row['id']}")
+        #     print(f"Row: {row}")
 
         update_this_pk = 75
         mysql_update(
