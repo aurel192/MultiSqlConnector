@@ -3,7 +3,6 @@ import re
 import sqlite3
 from datetime import datetime
 from typing import Any, Sequence
-
 from db_config import SQLITE_DB_PATH
 
 

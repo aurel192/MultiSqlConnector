@@ -1,17 +1,15 @@
-from pathlib import Path
 import sys
-
-# Allow direct execution: py src/multisqlconnector/example.py
-if __package__ is None or __package__ == "":
-    src_root = Path(__file__).resolve().parents[1]
-    if str(src_root) not in sys.path:
-        sys.path.insert(0, str(src_root))
-
+from pathlib import Path
 from sqlhelper import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete
 from db_config import mysql_config, mysql_config_02, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER, configure as configure_db_connection, set_custom_placeholder
 from mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_testdb
 from sqlite3helper import *
 
+# Allow direct execution: py src/multisqlconnector/example.py
+# if __package__ is None or __package__ == "":
+#     src_root = Path(__file__).resolve().parents[1]
+#     if str(src_root) not in sys.path:
+#         sys.path.insert(0, str(src_root))
 
 def create_db_and_run_tests():
     current_provider = DEFAULT_SQL_PROVIDER
@@ -49,28 +47,28 @@ def run_select_queries():
     current_provider = DEFAULT_SQL_PROVIDER
     db_name = SQLITE_DB_PATH if current_provider == "SQLITE" else mysql_config.get("database", "Unknown")
     print(f"-------- RUNNING SELECT QUERIES ON {current_provider} Database: {db_name} --------")
-    # print(f"--------  WITHOUT CASTING --------")
-    # result = sql_select(
-    #     sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > %p",
-    #     parameters=(2,)
-    # )
+    print(f"--------  WITHOUT CASTING --------")
+    result = sql_select(
+        sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > %p",
+        parameters=(2,)
+    )
 
-    # print(f"Not casted rows: {result}\n")
-    # for row in result:
-    #     print(f"Row ID: {row[0]}")  # type: ignore[index]
-    #     print(f"Row: {row}")
+    print(f"Not casted rows: {result}\n")
+    for row in result:
+        print(f"Row ID: {row[0]}")  # type: ignore[index]
+        print(f"Row: {row}")
 
-    # print(f"--------  WITH CASTING --------")
-    # casted_rows = sql_select_cast(
-    #     "SELECT id, value1, value2 FROM testtable WHERE id > %p",
-    #     result_types=(int, int, str),
-    #     parameters=(2,)
-    # )
+    print(f"--------  WITH CASTING --------")
+    casted_rows = sql_select_cast(
+        "SELECT id, value1, value2 FROM testtable WHERE id > %p",
+        result_types=(int, int, str),
+        parameters=(2,)
+    )
 
-    # print(f"Casted rows: {casted_rows}\n")
-    # for row in casted_rows:
-    #     print(f"Row ID: {row[0]}")  # type: ignore[index]
-    #     print(f"Row: {row}")
+    print(f"Casted rows: {casted_rows}\n")
+    for row in casted_rows:
+        print(f"Row ID: {row[0]}")  # type: ignore[index]
+        print(f"Row: {row}")
 
     print(f"--------  WITH NAMED RESULTS WITH 2 PARAMS --------")
     named_rows = sql_select_named(
@@ -252,6 +250,10 @@ if __name__ == "__main__":
 
     # test_function_02()
 
-    # configure_db_connection(default_sqlprovider="MYSQL")
-    # run_select_queries()
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config)
+    run_select_queries()
+    
+    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")
+    run_select_queries()
+
     pass

@@ -1,8 +1,6 @@
 import re
 import sqlite3
-
 import mysql.connector
-
 from db_config import DEFAULT_SQL_PROVIDER, CUSTOM_PLACEHOLDER, mysql_config, SQLITE_DB_PATH
 from mysqlhelper import mysql_delete, mysql_execute, mysql_insert, mysql_select, mysql_update
 from sqlite3helper import (
@@ -17,14 +15,14 @@ from sqlite3helper import (
 def _normalize_query(sqlquery: str) -> str:
     sqlprovider = DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
-        sqlquery = sqlquery.replace(db_config.CUSTOM_PLACEHOLDER, "%s")
+        sqlquery = sqlquery.replace(CUSTOM_PLACEHOLDER, "%s")
         sqlquery = sqlquery.replace(":param:", "%s")
         sqlquery = sqlquery.replace("%p", "%s")
         sqlquery = sqlquery.replace("?p", "%s")
         sqlquery = sqlquery.replace(":p", "%s")
         return sqlquery
 
-    sqlquery = sqlquery.replace(db_config.CUSTOM_PLACEHOLDER, "?")
+    sqlquery = sqlquery.replace(CUSTOM_PLACEHOLDER, "?")
     sqlquery = sqlquery.replace(":param:", "?")
     sqlquery = sqlquery.replace("%p", "?")
     sqlquery = sqlquery.replace("?p", "?")
@@ -34,7 +32,7 @@ def _normalize_query(sqlquery: str) -> str:
 
 def sql_execute(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
+    sqlprovider = DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_execute(query, parameters, connection=connection)
     return sqlite_execute(query, parameters, connection=connection)
@@ -62,13 +60,13 @@ def sql_select_named(sqlquery, parameters=None, connection=None):
     conn = None
     cur = None
     try:
-        sqlprovider = db_config.DEFAULT_SQL_PROVIDER
+        sqlprovider = DEFAULT_SQL_PROVIDER
         if sqlprovider == "MYSQL":
-            conn_config = db_config.mysql_config if connection is None else connection
+            conn_config = mysql_config if connection is None else connection
             conn = mysql.connector.connect(**conn_config)
             cur = conn.cursor()
         else:
-            conn = connection if connection is not None else sqlite3.connect(db_config.SQLITE_DB_PATH)
+            conn = connection if connection is not None else sqlite3.connect(SQLITE_DB_PATH)
             cur = conn.cursor()
 
         if parameters is not None:
@@ -88,7 +86,7 @@ def sql_select_named(sqlquery, parameters=None, connection=None):
 
 def sql_select(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
+    sqlprovider = DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_select(query, parameters, connection=connection)
     return sqlite_select(query, parameters, connection=connection)
@@ -96,7 +94,7 @@ def sql_select(sqlquery, parameters=None, connection=None):
 
 def sql_insert(sqlquery, parameters=None, many: bool = False, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
+    sqlprovider = DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_insert(query, parameters, many=many, connection=connection)
     return sqlite_insert(query, parameters, many=many, connection=connection)
@@ -104,7 +102,7 @@ def sql_insert(sqlquery, parameters=None, many: bool = False, connection=None):
 
 def sql_update(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
+    sqlprovider = DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_update(query, parameters, connection=connection)
     return sqlite_update(query, parameters, connection=connection)
@@ -112,7 +110,7 @@ def sql_update(sqlquery, parameters=None, connection=None):
 
 def sql_delete(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
-    sqlprovider = db_config.DEFAULT_SQL_PROVIDER
+    sqlprovider = DEFAULT_SQL_PROVIDER
     if sqlprovider == "MYSQL":
         return mysql_delete(query, parameters, connection=connection)
     return sqlite_delete(query, parameters, connection=connection)

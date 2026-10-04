@@ -1,8 +1,6 @@
 import random
-from datetime import datetime
-
 import mysql.connector
-
+from datetime import datetime
 from db_config import mysql_config
 
 
