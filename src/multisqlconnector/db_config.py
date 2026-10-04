@@ -30,7 +30,19 @@ mysql_config_02: dict[str, Any] = {
 }
 
 
-def configure(
+def get_database_provider() -> str:
+    return DEFAULT_SQL_PROVIDER.lower()
+
+
+def get_database_name() -> str:
+    if DEFAULT_SQL_PROVIDER == "SQLITE":
+        return str(SQLITE_DB_PATH)
+    elif DEFAULT_SQL_PROVIDER == "MYSQL":
+        return str(mysql_config.get("database", ""))
+    return ""
+
+
+def configure_db_connection(
     *,
     default_sqlprovider: str | None = None,
     sqlite_db_path: str | None = None,
@@ -54,9 +66,9 @@ def configure(
         if sqlite_db_path is not None and not sqlite_db_path.strip() and (SQLITE_DB_PATH is None or SQLITE_DB_PATH.strip() == ""):
             raise ValueError("sqlite_db_path is required when default_sqlprovider is 'SQLITE' and sqlite_db_path is not set.")
 
-    # Set the sqlite database path based on the provided arguments (sqlite_db_path)
-    if sqlite_db_path is not None:
-        SQLITE_DB_PATH = sqlite_db_path
+        # Set the sqlite database path based on the provided arguments (sqlite_db_path)
+        if sqlite_db_path is not None:
+            SQLITE_DB_PATH = sqlite_db_path
 
     if target_sql_provider == "MYSQL":
         if mysql_connection is None and (mysql_config is None or not isinstance(mysql_config, dict)):
@@ -64,9 +76,10 @@ def configure(
         if mysql_connection is not None and not isinstance(mysql_connection, dict):
             raise TypeError("mysql_connection must be a dictionary when default_sqlprovider is 'MYSQL'")
 
-    # Set mysql connection settings based on the provided arguments (mysql_connection)
-    if mysql_connection is not None:
-        mysql_config = mysql_connection.copy()
+        # Set mysql connection settings based on the provided arguments (mysql_connection)
+        if mysql_connection is not None:
+            mysql_config = mysql_connection.copy()
+
 
 def set_custom_placeholder(placeholder: str) -> None:
     """Set a custom placeholder for SQL queries."""

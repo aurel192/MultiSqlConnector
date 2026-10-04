@@ -31,7 +31,7 @@ def _sanitize_sqlite_script(sqlquery: str) -> str:
 
 def get_sqlite_database_path(sqlite_db_path: str | None = None):
     try:
-        errormsg = "sqlite_db_path cannot be an empty string or None. Set a valid path using the configure function!"
+        errormsg = "sqlite_db_path cannot be an empty string or None. Set a valid path using the configure_db_connection function!"
         if sqlite_db_path is not None and sqlite_db_path.strip() == "":
             raise ValueError(errormsg)
         if SQLITE_DB_PATH is None or (SQLITE_DB_PATH is not None and SQLITE_DB_PATH.strip() == ""):

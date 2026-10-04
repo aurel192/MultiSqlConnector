@@ -23,7 +23,7 @@ py -m pip install .
 ## Quick start
 
 ```python
-from multisqlconnector import DEFAULT_SQL_PROVIDER, configure, sql_insert, sql_select, sql_select_named, sql_update, sql_delete, sql_execute
+from multisqlconnector import DEFAULT_SQL_PROVIDER, configure_db_connection, sql_insert, sql_select, sql_select_named, sql_select_named_cast, sql_update, sql_delete, sql_execute
 
 custom_mysql_settings: dict[str, Any] = {
     "host": "127.0.0.1",
@@ -53,6 +53,13 @@ named_rows = sql_select_named(
 for row in named_rows:
     print(f"Row ID: {row['id']}")
     print(f"Row: {row}")
+
+# Named results with optional type conversion by SELECT-column order
+named_casted_rows = sql_select_named_cast(
+    sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > :param:",
+    result_types=(int, int, str),
+    parameters=(0,),
+)
 ```
 
 ## Switch database engines and databases on the fly without a wall of text
@@ -60,7 +67,7 @@ for row in named_rows:
 The main goal of this package is to let you switch quickly between SQLite and MySQL,
 and also switch to different database files or schemas, without rewriting your query code.
 
-With `configure(...)`, you can:
+With `configure_db_connection(...)`, you can:
 
 - use the same functions for different sql database systems!
 - modify which database to connect with one simple function call. So you can use multiple databases and database engines
@@ -71,7 +78,7 @@ With `configure(...)`, you can:
 
 ## MySQL usage
 ```python
-configure(
+configure_db_connection(
     default_sqlprovider="MYSQL",
     mysql_connection={
         "host": "127.0.0.1",
@@ -109,9 +116,9 @@ for row in rows:
 ## SQLite3 usage
 
 ```python
-from multisqlconnector import configure, sql_execute, sql_select_named
+from multisqlconnector import configure_db_connection, sql_execute, sql_select_named, sql_select_named_cast
 
-configure(sqlprovider="SQLITE", sqlite_db_path="./example.db")
+configure_db_connection(sqlprovider="SQLITE", sqlite_db_path="./example.db")
 
 sql_execute(
     """
@@ -127,10 +134,42 @@ sql_insert(
     "INSERT INTO testtable (value1, value2) VALUES (%p, %p)",
     parameters=(42, "hello"),
 )
+print(f"--------  WITHOUT CASTING AND NAMES --------")
+result = sql_select(
+    sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > %p",
+    parameters=(2,)
+)
+for row in result:
+    print(f"Row ID: {row[0]} value1: {row[1]}, value2: {row[2]}")
 
-rows = sql_select_named("SELECT id, value1, value2 FROM testtable WHERE id > %p", parameters=(0,))
-for row in rows:
-    print(row)
+
+print(f"--------  SELECT WITH TYPE CASTING --------")
+casted_rows = sql_select_cast(
+    "SELECT id, value1, value2 FROM testtable WHERE id > %p",
+    result_types=(int, int, str),
+    parameters=(0,)
+)
+for row in casted_rows:
+    print(f"Row ID: {row[0]} value1: {row[1]}, value2: {row[2]})")
+
+
+print(f"--------  SELECT NAMED RESULTS WITH PARAMS --------")
+named_rows = sql_select_named(
+    sqlquery="SELECT id, value1, value2 FROM testtable WHERE id >= :param: AND id <= :param:",
+    parameters=(1, 100, )
+)
+for row in named_rows:
+    print(f"Row ID: {row['id']} value1: {row['value1']}, value2: {row['value2']}")
+
+
+print(f"--------  SELECT NAMED RESULTS AND WITH PARAM(s) AND TYPE CASTING --------")
+named_casted_rows = sql_select_named_cast(
+    "SELECT id, value1, value2 FROM testtable WHERE id > %p",
+    result_types=(int, int, str),
+    parameters=(0,)
+)
+for row in named_casted_rows:
+    print(f"Row ID: {row['id']} value1: {row['value1']}, value2: {row['value2']}")
 ```
 
 ## Placeholders

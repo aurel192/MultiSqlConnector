@@ -11,7 +11,7 @@ def get_mysql_connection_parameters(connection=None):
         elif mysql_config is not None and isinstance(mysql_config, dict):
             return mysql_config
         else:
-            raise ValueError("MySQL connection parameters are not properly configured.")
+            raise ValueError("MySQL connection parameters are not properly configured. Set them using the configure_db_connection function!")
     except Exception as e:
         raise Exception(f"Error getting MySQL connection parameters: {e}")
 

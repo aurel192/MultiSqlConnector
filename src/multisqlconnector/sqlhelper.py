@@ -84,6 +84,53 @@ def sql_select_named(sqlquery, parameters=None, connection=None):
             conn.close()
 
 
+def sql_select_named_cast(sqlquery, result_types, parameters=None, connection=None):
+    """Return SELECT results as dictionaries and cast values by column order.
+
+    ``result_types`` contains the desired callable type for each selected
+    column, just like :func:`sql_select_cast`.  ``None`` means that the value
+    should not be cast, and SQL NULL values are always left unchanged.
+    Column names come from the cursor metadata, so this works with both the
+    MySQL and SQLite wrappers.
+    """
+    query = _normalize_query(sqlquery)
+    conn = None
+    cur = None
+    try:
+        sqlprovider = DEFAULT_SQL_PROVIDER
+        if sqlprovider == "MYSQL":
+            conn_config = mysql_config if connection is None else connection
+            conn = mysql.connector.connect(**conn_config)
+            cur = conn.cursor()
+        elif sqlprovider == "SQLITE":
+            conn = connection if connection is not None else sqlite3.connect(SQLITE_DB_PATH)
+            cur = conn.cursor()
+        else:
+            raise ValueError(f"Unsupported SQL provider: {sqlprovider}")
+
+        if parameters is not None:
+            cur.execute(query, parameters)
+        else:
+            cur.execute(query)
+
+        rows = cur.fetchall()
+        columns = [column[0] for column in cur.description] if cur.description else []
+        named_results = []
+        for row in rows:
+            named_row = {}
+            for index, (column, value) in enumerate(zip(columns, row)):
+                if index < len(result_types) and result_types[index] is not None and value is not None:
+                    value = result_types[index](value)
+                named_row[column] = value
+            named_results.append(named_row)
+        return named_results
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
+
+
 def sql_select(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
     sqlprovider = DEFAULT_SQL_PROVIDER

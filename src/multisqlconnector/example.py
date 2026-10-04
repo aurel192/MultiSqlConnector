@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
-from sqlhelper import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete
-from db_config import mysql_config, mysql_config_02, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER, configure as configure_db_connection, set_custom_placeholder
+from sqlhelper import sql_select, sql_select_cast, sql_select_named, sql_select_named_cast, sql_execute, sql_insert, sql_update, sql_delete
+from db_config import *
 from mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_testdb
 from sqlite3helper import *
 
@@ -44,41 +44,42 @@ def create_db_and_run_tests():
 
 
 def run_select_queries():
-    current_provider = DEFAULT_SQL_PROVIDER
-    db_name = SQLITE_DB_PATH if current_provider == "SQLITE" else mysql_config.get("database", "Unknown")
-    print(f"-------- RUNNING SELECT QUERIES ON {current_provider} Database: {db_name} --------")
     print(f"--------  WITHOUT CASTING --------")
     result = sql_select(
         sqlquery="SELECT id, value1, value2 FROM testtable WHERE id > %p",
         parameters=(2,)
     )
-
-    print(f"Not casted rows: {result}\n")
     for row in result:
-        print(f"Row ID: {row[0]}")  # type: ignore[index]
-        print(f"Row: {row}")
+        print(f"Row ID: {row[0]} value1: {row[1]}, value2: {row[2]}")  # type: ignore[index]
 
-    print(f"--------  WITH CASTING --------")
+    print(f"--------  SELECT WITH TYPE CASTING --------")
     casted_rows = sql_select_cast(
         "SELECT id, value1, value2 FROM testtable WHERE id > %p",
         result_types=(int, int, str),
         parameters=(2,)
     )
 
-    print(f"Casted rows: {casted_rows}\n")
     for row in casted_rows:
-        print(f"Row ID: {row[0]}")  # type: ignore[index]
-        print(f"Row: {row}")
+        print(f"Row ID: {row[0]} value1: {row[1]}, value2: {row[2]})")
 
-    print(f"--------  WITH NAMED RESULTS WITH 2 PARAMS --------")
+    print(f"--------  SELECT NAMED RESULTS WITH PARAMS --------")
     named_rows = sql_select_named(
         sqlquery="SELECT id, value1, value2 FROM testtable WHERE id >= :param: AND id <= :param:",
         parameters=(1, 100, )
     )
 
     for row in named_rows:
-        print(f"Row ID: {row['id']}")
-        print(f"Row: {row}")
+        print(f"Row ID: {row['id']} value1: {row['value1']}, value2: {row['value2']}")
+
+    print(f"--------  SELECT NAMED RESULTS AND WITH PARAMS AND TYPE CASTING --------")
+    named_casted_rows = sql_select_named_cast(
+        "SELECT id, value1, value2 FROM testtable WHERE id > %p",
+        result_types=(int, int, str),
+        parameters=(0,)
+    )
+
+    for row in named_casted_rows:
+        print(f"Row ID: {row['id']} value1: {row['value1']}, value2: {row['value2']}")
 
 
 def test_function_01():
@@ -218,28 +219,44 @@ def create_mysql_testdb():
         print(f"Error inserting data into MySQL test database: {e}")
 
 
+def print_db_info():
+    db_provider = get_database_provider()
+    db_name = get_database_name()
+    print(f"Database provider: {db_provider}")
+    print(f"Database name: {db_name}")
+
 if __name__ == "__main__":
 
     # clear screen
     print("\033[2J\033[H", end="")
 
-    print("Starting MySQL test functions")
-    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config)
-    mysql_test_functions()
-    print("========================================")
-    print("Finished running MySQL test functions.")
+    # print("Starting MySQL test functions")
+    # configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config)
+    # print_db_info()
+    # mysql_test_functions()
+    # print(f"============DEFAULT_SQL_PROVIDER: {DEFAULT_SQL_PROVIDER} ============================")
+    # print("Finished running MySQL test functions.")
 
-    print("Starting SQLite test functions")
+    # print("Starting SQLite test functions")
+    # configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")
+    # print_db_info()
+    # sqlite_test_functions()
+    # print(f"============DEFAULT_SQL_PROVIDER: {DEFAULT_SQL_PROVIDER} ============================")
+    # print("Finished running SQLite test functions.")
+
+    
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config)
+    print_db_info()
+    run_select_queries()
+    
     configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")
-    sqlite_test_functions()
-    print("========================================")
-    print("Finished running SQLite test functions.")
+    print_db_info()
+    run_select_queries()
+
+
 
 
     # create_db_and_run_tests()
-
-    
-
 
     # create_sqlite_testdb_using_scripts()
 
@@ -250,10 +267,5 @@ if __name__ == "__main__":
 
     # test_function_02()
 
-    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=mysql_config)
-    run_select_queries()
-    
-    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")
-    run_select_queries()
 
     pass
