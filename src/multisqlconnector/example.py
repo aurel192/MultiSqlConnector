@@ -10,7 +10,7 @@ if __package__ is None or __package__ == "":
 from multisqlconnector import sql_select, sql_select_cast, sql_select_named, sql_execute, sql_insert, sql_update, sql_delete
 from multisqlconnector import db_config
 from multisqlconnector.db_config import mysql_config, SQLITE_DB_PATH, DEFAULT_SQL_PROVIDER, configure as configure_db_connection, set_custom_placeholder
-from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_db
+from multisqlconnector.mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_testdb
 from multisqlconnector.sqlite3helper import *
 
 
@@ -19,7 +19,7 @@ def create_db_and_run_tests():
     current_db = db_config.SQLITE_DB_PATH if current_provider == "SQLITE" else db_config.mysql_config.get("database", "Unknown")
     print(f"-------- RUNNING TESTS USING: {current_provider} (Database: {current_db}) ---------------------")
     if current_provider == "MYSQL":
-        created = init_mysql_db()
+        created = init_mysql_testdb()
         if not created:
             print("MySQL database initialization failed.")
             return
@@ -135,9 +135,8 @@ def test_function_02():
     # Test MYSQL with custom connection settings
     configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=custom_mysql_settings)
     # This will create the database if it doesn't exist. Database name = test_db_02
-    init_mysql_db(connection=custom_mysql_settings)
+    init_mysql_testdb(connection=custom_mysql_settings)
     create_db_and_run_tests()
-
 
     print("\n\n==================== Running SELECT Queries on both MySQL and SQLite databases ====================")
     
@@ -159,8 +158,8 @@ def create_sqlite_database(db_path: str = "testdb_sqlite_01.db"):
         sqlite_create_script_path = sql_files_path / "sqlite_test_create.sql"
         with open(sqlite_create_script_path, "r", encoding="utf-8") as f:
             sqlite_create_script = f.read()
-
         sql_execute(sqlquery=sqlite_create_script)
+        print("SQLite create script executed successfully.")
     except Exception as e:
         print(f"Error creating SQLite test database: {e}")
 
@@ -173,10 +172,10 @@ def insert_into_sqlite_database(db_path: str = "testdb_sqlite_01.db"):
         sqlite_insert_script_path = sql_files_path / "sqlite_test_insert.sql"
         with open(sqlite_insert_script_path, "r", encoding="utf-8") as f:
             sqlite_insert_script = f.read()
-
         sql_execute(sqlquery=sqlite_insert_script)
+        print("SQLite insert script executed successfully.")
     except Exception as e:
-        print(f"Error creating SQLite test database: {e}")
+        print(f"Error inserting into SQLite test database: {e}")
 
 
 def create_and_insert_into_sqlite_database(db_path: str = "testdb_sqlite_192.db"):
@@ -187,10 +186,10 @@ def create_and_insert_into_sqlite_database(db_path: str = "testdb_sqlite_192.db"
         sqlite_create_and_insert_script_path = sql_files_path / "sqlite_test_create_and_insert.sql"
         with open(sqlite_create_and_insert_script_path, "r", encoding="utf-8") as f:
             sqlite_create_and_insert_script = f.read()
-
         sql_execute(sqlquery=sqlite_create_and_insert_script)
+        print("SQLite create and insert script executed successfully.")
     except Exception as e:
-        print(f"Error creating SQLite test database: {e}")
+        print(f"Error creating and inserting into SQLite test database: {e}")
 
 
 def create_sqlite_testdb_using_scripts():
@@ -207,8 +206,8 @@ def create_mysql_testdb():
         mysql_create_script_path = sql_files_path / "mysql_test_db_02_create.sql"
         with open(mysql_create_script_path, "r", encoding="utf-8") as f:
             mysql_create_script = f.read()
-
         sql_execute(sqlquery=mysql_create_script)
+        print("MySQL test database created successfully.")
     except Exception as e:
         print(f"Error creating MySQL test database: {e}")
 
@@ -216,8 +215,8 @@ def create_mysql_testdb():
         mysql_insert_script_path = sql_files_path / "mysql_test_db_02_insert.sql"
         with open(mysql_insert_script_path, "r", encoding="utf-8") as f:
             mysql_insert_script = f.read()
-
         sql_execute(sqlquery=mysql_insert_script)
+        print("Data inserted into MySQL test database successfully.")
     except Exception as e:
         print(f"Error inserting data into MySQL test database: {e}")
 
@@ -227,8 +226,23 @@ if __name__ == "__main__":
     # clear screen
     print("\033[2J\033[H", end="")
 
+    print("Starting MySQL test functions")
+    configure_db_connection(default_sqlprovider="MYSQL", mysql_connection=db_config.mysql_config)
+    mysql_test_functions()
+    print("========================================")
+    print("Finished running MySQL test functions.")
+
+    print("Starting SQLite test functions")
+    configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")
+    sqlite_test_functions()
+    print("========================================")
+    print("Finished running SQLite test functions.")
+
+
     # create_db_and_run_tests()
-    # sqlite_test_functions()
+
+    
+
 
     # create_sqlite_testdb_using_scripts()
 

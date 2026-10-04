@@ -29,6 +29,7 @@ def _sanitize_sqlite_script(sqlquery: str) -> str:
 
     return "\n".join(cleaned_lines)
 
+
 def get_sqlite_database_path(sqlite_db_path: str | None = None):
     try:
         errormsg = "sqlite_db_path cannot be an empty string or None. Set a valid path using the configure function!"
@@ -65,7 +66,6 @@ def init_sqlite_db(conn: str | None = None, createscript: str | None = None):
 
 
 def sqlite_execute(sqlquery: str, parameters: Sequence[Any] | None = None, connection=None):
-    print(f"sqlite_execute conn: {connection}")
     conn = None
     cur = None
     try:
@@ -205,9 +205,10 @@ def sqlite_test_functions(connection=None):
         for row in results:
             print(row)
 
+        update_this_pk = 10
         sqlite_update(
             "UPDATE testtable SET value2 = ? WHERE id = ?",
-            ("updated_value_" + str(random.randint(1, 100)), 1),
+            ("updated_value_" + str(random.randint(1, 100)), update_this_pk),
             connection=connection,
         )
 

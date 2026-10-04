@@ -31,6 +31,7 @@ def _normalize_query(sqlquery: str) -> str:
     sqlquery = sqlquery.replace(":p", "?")
     return sqlquery
 
+
 def sql_execute(sqlquery, parameters=None, connection=None):
     query = _normalize_query(sqlquery)
     sqlprovider = db_config.DEFAULT_SQL_PROVIDER

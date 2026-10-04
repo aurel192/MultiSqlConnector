@@ -17,37 +17,6 @@ def get_mysql_connection_parameters(connection=None):
     except Exception as e:
         raise Exception(f"Error getting MySQL connection parameters: {e}")
 
-#: TODO: Add a function to initialize the MySQL database and create the test table if it doesn't exist. Using sql script to create the db and tables.
-def init_mysql_db(connection=None):
-    try:
-        # Create a database if it doesn't exist
-        mysql_config = get_mysql_connection_parameters(connection).copy()
-        database_name = mysql_config.get("database")
-
-        database_created = mysql_execute(
-            f"""
-            CREATE DATABASE IF NOT EXISTS `{database_name}`
-            CHARACTER SET utf8mb4
-            COLLATE utf8mb4_unicode_ci
-            """,
-            connection=mysql_config,
-        )
-        if not database_created:
-            return False
-
-        test_table_created = mysql_execute(
-            """
-            CREATE TABLE IF NOT EXISTS testtable (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                value1 INT NULL,
-                value2 VARCHAR(255) NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            """,
-            connection=connection or mysql_config,
-        )
-        return test_table_created
-    except Exception as e:
-        raise Exception(f"Error initializing MySQL database: {e}")
 
 
 def _split_sql_script(sql_script: str) -> list[str]:
@@ -250,15 +219,47 @@ def mysql_delete(sqlquery, parameters=None, connection=None):
             conn.close()
 
 
+def init_mysql_testdb(connection=None):
+    try:
+        # Create a test database if it doesn't exist
+        mysql_config = get_mysql_connection_parameters(connection).copy()
+        database_name = mysql_config.get("database")
+
+        database_created = mysql_execute(
+            f"""
+            CREATE DATABASE IF NOT EXISTS `{database_name}`
+            CHARACTER SET utf8mb4
+            COLLATE utf8mb4_unicode_ci
+            """,
+            connection=mysql_config,
+        )
+        if not database_created:
+            return False
+
+        test_table_created = mysql_execute(
+            """
+            CREATE TABLE IF NOT EXISTS testtable (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                value1 INT NULL,
+                value2 VARCHAR(255) NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+            connection=connection or mysql_config,
+        )
+        return test_table_created
+    except Exception as e:
+        raise Exception(f"Error initializing MySQL database: {e}")
+
+
 def mysql_test_functions(connection=None):
     try:
         mysql_config = get_mysql_connection_parameters(connection).copy()
         database_name = mysql_config.get("database")
-        print("======== Running MySQL Test Functions =======================")
+        print("======== Running MySQL Test Functions on =======================")
         print(f"======  Using connection: {database_name} ======")
-        mysql_config = get_mysql_connection_parameters(connection).copy()
+        # mysql_config = get_mysql_connection_parameters(connection).copy()
         print(f"Using database: {database_name}")
-        mysql_config = get_mysql_connection_parameters(connection).copy()
+        # mysql_config = get_mysql_connection_parameters(connection).copy()
         mysql_insert(
             "INSERT INTO testtable (value1, value2) VALUES (%s, %s)",
             (random.randint(1, 100), f"{database_name}_" + str(datetime.now().isoformat()))
@@ -275,9 +276,10 @@ def mysql_test_functions(connection=None):
         for row in results:
             print(row)
 
+        update_this_pk = 75
         mysql_update(
             "UPDATE testtable SET value2 = %s WHERE id = %s",
-            (f"updated_{database_name}_" + str(random.randint(1, 100)), 1)
+            (f"updated_{database_name}_" + str(random.randint(1, 100)), update_this_pk)
         )
 
         topid = mysql_select("SELECT MAX(id) FROM testtable")
