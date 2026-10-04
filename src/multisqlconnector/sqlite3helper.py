@@ -53,7 +53,7 @@ def get_sqlite_connection(sqlite_db_path: str | None = None):
 def init_sqlite_db(conn: str | None = None, createscript: str | None = None):
     try:
         # it prevents the case where conn is None and python caches a default old value instead of using the provided parameter (Yeah I know. WTF!?)
-        resolved_conn = conn if conn is not None else db_config.SQLITE_DB_PATH
+        resolved_conn = conn if conn is not None else SQLITE_DB_PATH
 
         if createscript is None or createscript.strip() == "":
             raise ValueError("createscript cannot be empty")
