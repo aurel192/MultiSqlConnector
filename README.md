@@ -23,7 +23,8 @@ py -m pip install .
 ## Quick start
 
 ```python
-from multisqlconnector import DEFAULT_SQL_PROVIDER, configure_db_connection, sql_insert, sql_select, sql_select_named, sql_select_named_cast, sql_update, sql_delete, sql_execute
+from typing import Any
+from multisqlconnector import configure_db_connection, set_custom_placeholder, sql_insert, sql_select, sql_select_named, sql_select_named_cast, sql_update, sql_delete, sql_execute
 
 custom_mysql_settings: dict[str, Any] = {
     "host": "127.0.0.1",
@@ -116,9 +117,9 @@ for row in rows:
 ## SQLite3 usage
 
 ```python
-from multisqlconnector import configure_db_connection, sql_execute, sql_select_named, sql_select_named_cast
+from multisqlconnector import configure_db_connection, sql_execute, sql_insert, sql_select, sql_select_cast, sql_select_named, sql_select_named_cast
 
-configure_db_connection(sqlprovider="SQLITE", sqlite_db_path="./example.db")
+configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="./example.db")
 
 sql_execute(
     """
@@ -181,7 +182,7 @@ Use portable placeholders in queries:
 - `?p`
 - `:p`
 
-Using parameters will prevent againts sql injections!
+Using parameters will prevent against SQL injections.
 
 
 The package normalizes them automatically:

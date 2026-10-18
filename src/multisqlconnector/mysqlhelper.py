@@ -1,15 +1,15 @@
 import random
 import mysql.connector
 from datetime import datetime
-from db_config import mysql_config
+from . import db_config
 
 
 def get_mysql_connection_parameters(connection=None):
     try:
         if connection is not None and isinstance(connection, dict):
             return connection
-        elif mysql_config is not None and isinstance(mysql_config, dict):
-            return mysql_config
+        elif db_config.mysql_config is not None and isinstance(db_config.mysql_config, dict):
+            return db_config.mysql_config
         else:
             raise ValueError("MySQL connection parameters are not properly configured. Set them using the configure_db_connection function!")
     except Exception as e:

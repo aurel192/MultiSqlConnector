@@ -3,7 +3,7 @@ import re
 import sqlite3
 from datetime import datetime
 from typing import Any, Sequence
-from db_config import SQLITE_DB_PATH
+from . import db_config
 
 
 def _sanitize_sqlite_script(sqlquery: str) -> str:
@@ -34,9 +34,9 @@ def get_sqlite_database_path(sqlite_db_path: str | None = None):
         errormsg = "sqlite_db_path cannot be an empty string or None. Set a valid path using the configure_db_connection function!"
         if sqlite_db_path is not None and sqlite_db_path.strip() == "":
             raise ValueError(errormsg)
-        if SQLITE_DB_PATH is None or (SQLITE_DB_PATH is not None and SQLITE_DB_PATH.strip() == ""):
+        if db_config.SQLITE_DB_PATH is None or (db_config.SQLITE_DB_PATH is not None and db_config.SQLITE_DB_PATH.strip() == ""):
             raise ValueError(errormsg)
-        path = sqlite_db_path if sqlite_db_path is not None else SQLITE_DB_PATH
+        path = sqlite_db_path if sqlite_db_path is not None else db_config.SQLITE_DB_PATH
         return path
     except Exception as e:
         raise Exception(f"Error getting SQLite database path in get_sqlite_database_path: sqlite_db_path={sqlite_db_path}, {e}")
@@ -53,7 +53,7 @@ def get_sqlite_connection(sqlite_db_path: str | None = None):
 def init_sqlite_db(conn: str | None = None, createscript: str | None = None):
     try:
         # it prevents the case where conn is None and python caches a default old value instead of using the provided parameter (Yeah I know. WTF!?)
-        resolved_conn = conn if conn is not None else SQLITE_DB_PATH
+        resolved_conn = conn if conn is not None else db_config.SQLITE_DB_PATH
 
         if createscript is None or createscript.strip() == "":
             raise ValueError("createscript cannot be empty")

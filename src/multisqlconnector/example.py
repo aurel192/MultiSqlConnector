@@ -1,19 +1,21 @@
-import sys
 from pathlib import Path
-from sqlhelper import sql_select, sql_select_cast, sql_select_named, sql_select_named_cast, sql_execute, sql_insert, sql_update, sql_delete
-from db_config import *
-from mysqlhelper import mysql_execute, mysql_test_functions, init_mysql_testdb
-from sqlite3helper import *
+from typing import Any
 
-# Allow direct execution: py src/multisqlconnector/example.py
-# if __package__ is None or __package__ == "":
-#     src_root = Path(__file__).resolve().parents[1]
-#     if str(src_root) not in sys.path:
-#         sys.path.insert(0, str(src_root))
+from . import db_config
+from .db_config import (
+    configure_db_connection,
+    get_database_name,
+    get_database_provider,
+    mysql_config,
+    mysql_config_02,
+)
+from .mysqlhelper import init_mysql_testdb, mysql_test_functions
+from .sqlhelper import sql_execute, sql_select, sql_select_cast, sql_select_named, sql_select_named_cast
+from .sqlite3helper import init_sqlite_db, sqlite_test_functions
 
 def create_db_and_run_tests():
-    current_provider = DEFAULT_SQL_PROVIDER
-    current_db = SQLITE_DB_PATH if current_provider == "SQLITE" else mysql_config.get("database", "Unknown")
+    current_provider = db_config.DEFAULT_SQL_PROVIDER
+    current_db = db_config.SQLITE_DB_PATH if current_provider == "SQLITE" else db_config.mysql_config.get("database", "Unknown")
     print(f"-------- RUNNING TESTS USING: {current_provider} (Database: {current_db}) ---------------------")
     if current_provider == "MYSQL":
         created = init_mysql_testdb()
@@ -94,12 +96,12 @@ def test_function_01():
     # Test Sqlite3 connection
     configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="test_sqlite.db")
     created = init_sqlite_db(createscript=sqlite_create_script)
-    print(f"SQLite database {SQLITE_DB_PATH} created: {created} (or it already existed)")
+    print(f"SQLite database {db_config.SQLITE_DB_PATH} created: {created} (or it already existed)")
     sqlite_test_functions()
 
     configure_db_connection(default_sqlprovider="SQLITE", sqlite_db_path="something_else_sqlite.db")
     created = init_sqlite_db(createscript=sqlite_create_script)
-    print(f"SQLite database {SQLITE_DB_PATH} created with custom connection: {created} (or it already existed)")
+    print(f"SQLite database {db_config.SQLITE_DB_PATH} created with custom connection: {created} (or it already existed)")
     create_db_and_run_tests()
 
     # Test MYSQL and Sqlite connections by switching between them
